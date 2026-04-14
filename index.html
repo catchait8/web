@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ホーム | Catchait</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+      color: #222;
+      background: #fff;
+      line-height: 1.7;
+    }
+    a { text-decoration: none; color: inherit; }
+    img { max-width: 100%; display: block; }
+
+    /* ── Variables ── */
+    :root {
+      --navy:   #0f1b2d;
+      --dark:   #1a2a3a;
+      --blue:   #2563eb;
+      --blue-l: #3b82f6;
+      --teal:   #0ea5e9;
+      --light:  #f4f7fb;
+      --gray:   #6b7280;
+      --border: #e5e7eb;
+      --white:  #ffffff;
+    }
+
+    /* ── Header / Nav ── */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(15, 27, 45, 0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.04em;
+    }
+    .logo span { color: var(--teal); }
+    nav { display: flex; align-items: center; gap: 24px; }
+    nav a {
+      color: rgba(255,255,255,0.8);
+      font-size: 0.875rem;
+      font-weight: 400;
+      transition: color 0.2s;
+    }
+    nav a:hover { color: #fff; }
+    .btn-cta {
+      background: var(--teal);
+      color: #fff !important;
+      padding: 8px 20px;
+      border-radius: 4px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn-cta:hover { background: var(--blue-l); transform: translateY(-1px); }
+
+    /* ── Hero ── */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+      background: var(--navy);
+    }
+    /* Animated gradient background (replacing video) */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+        #0f1b2d 0%,
+        #0d2847 35%,
+        #0a1f3c 55%,
+        #162033 75%,
+        #0f1b2d 100%);
+      animation: bgShift 12s ease-in-out infinite alternate;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 40%,
+        rgba(14, 165, 233, 0.18) 0%,
+        transparent 70%);
+    }
+    @keyframes bgShift {
+      0%   { filter: hue-rotate(0deg) brightness(1); }
+      100% { filter: hue-rotate(15deg) brightness(1.08); }
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      max-width: 820px;
+      padding: 0 24px;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      color: var(--teal);
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      border: 1px solid rgba(14,165,233,0.4);
+      padding: 4px 14px;
+      border-radius: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.4;
+      margin-bottom: 28px;
+      letter-spacing: 0.02em;
+    }
+    .hero h1 em { color: var(--teal); font-style: normal; }
+    .hero p {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.7);
+      max-width: 620px;
+      margin: 0 auto 40px;
+      line-height: 1.85;
+    }
+    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--teal);
+      color: #fff;
+      padding: 14px 32px;
+      border-radius: 5px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(14,165,233,0.35);
+    }
+    .btn-primary:hover {
+      background: var(--blue-l);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(14,165,233,0.45);
+    }
+    .btn-secondary {
+      border: 1.5px solid rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.9);
+      padding: 14px 32px;
+      border-radius: 5px;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-secondary:hover {
+      border-color: rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.06);
+    }
+    .scroll-hint {
+      position: absolute;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      animation: bounce 2s infinite;
+    }
+    .scroll-hint::after {
+      content: '';
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
+    }
+    @keyframes bounce {
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      50%      { transform: translateX(-50%) translateY(8px); }
+    }
+
+    /* ── Section commons ── */
+    section { padding: 96px 40px; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      color: var(--dark);
+    }
+    .section-desc {
+      font-size: 1rem;
+      color: var(--gray);
+      max-width: 680px;
+      line-height: 1.9;
+    }
+
+    /* ── About / Pain points ── */
+    .about { background: var(--white); }
+    .about .section-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+    .pain-list { list-style: none; margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
+    .pain-list li {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 16px 20px;
+      background: var(--light);
+      border-radius: 8px;
+      border-left: 3px solid var(--teal);
+      font-size: 0.9rem;
+      color: #444;
+      line-height: 1.7;
+    }
+    .pain-list li::before {
+      content: '?';
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--teal);
+      background: rgba(14,165,233,0.12);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* ── Tech Features ── */
+    .features { background: var(--light); }
+    .features-header { text-align: center; margin-bottom: 64px; }
+    .features-header .section-desc { margin: 0 auto; }
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+    .feature-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 36px 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      transition: transform 0.2s, box-shadow 0.2s;
+      border-top: 3px solid transparent;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    .feature-card:nth-child(1) { border-top-color: var(--teal); }
+    .feature-card:nth-child(2) { border-top-color: var(--blue); }
+    .feature-card:nth-child(3) { border-top-color: #8b5cf6; }
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+    }
+    .feature-card:nth-child(1) .feature-icon { background: rgba(14,165,233,0.1); }
+    .feature-card:nth-child(2) .feature-icon { background: rgba(37,99,235,0.1); }
+    .feature-card:nth-child(3) .feature-icon { background: rgba(139,92,246,0.1); }
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--dark);
+    }
+    .feature-card p { font-size: 0.875rem; color: var(--gray); line-height: 1.8; margin-bottom: 20px; }
+    .examples {
+      font-size: 0.8rem;
+      color: #555;
+      background: var(--light);
+      border-radius: 6px;
+      padding: 12px 14px;
+      line-height: 1.9;
+    }
+    .examples strong { color: var(--dark); font-size: 0.75rem; letter-spacing: 0.05em; }
+
+    /* ── Goal / Philosophy ── */
+    .goal { background: var(--navy); }
+    .goal .section-label { color: var(--teal); }
+    .goal .section-title { color: #fff; }
+    .goal .section-desc { color: rgba(255,255,255,0.65); }
+    .goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 52px; }
+    .goal-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 32px 28px;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .goal-card:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(14,165,233,0.35);
+    }
+    .goal-tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    .tag-learn { background: rgba(14,165,233,0.2); color: var(--teal); }
+    .tag-quick { background: rgba(37,99,235,0.2); color: #93c5fd; }
+    .goal-card h3 { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 12px; }
+    .goal-card p { font-size: 0.875rem; color: rgba(255,255,255,0.6); line-height: 1.85; }
+    .goal-card ul { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .goal-card ul li {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.55);
+      padding-left: 16px;
+      position: relative;
+    }
+    .goal-card ul li::before {
+      content: '›';
+      position: absolute;
+      left: 0;
+      color: var(--teal);
+      font-weight: 700;
+    }
+
+    /* ── Community ── */
+    .community { background: var(--white); }
+    .community .section-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+    .community-reasons { list-style: none; margin-top: 28px; display: flex; flex-direction: column; gap: 12px; }
+    .community-reasons li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+      color: #444;
+      font-weight: 500;
+    }
+    .community-reasons li::before {
+      content: '✓';
+      width: 24px; height: 24px;
+      background: rgba(14,165,233,0.12);
+      color: var(--teal);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .community-cta-box {
+      background: linear-gradient(135deg, var(--navy) 0%, #0d2847 100%);
+      border-radius: 16px;
+      padding: 48px 40px;
+      text-align: center;
+    }
+    .community-cta-box h3 { font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 14px; }
+    .community-cta-box p { font-size: 0.9rem; color: rgba(255,255,255,0.65); margin-bottom: 28px; line-height: 1.8; }
+
+    /* ── Subscription ── */
+    .subscription { background: var(--light); }
+    .subscription .section-inner { text-align: center; }
+    .subscription .section-desc { margin: 0 auto 56px; }
+    .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: left; }
+    .sub-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 32px 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .sub-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
+    .sub-card.featured {
+      border: 2px solid var(--teal);
+      transform: scale(1.02);
+    }
+    .sub-card.featured:hover { transform: scale(1.02) translateY(-4px); }
+    .featured-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--teal);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      padding: 3px 14px;
+      border-radius: 20px;
+    }
+    .sub-card h3 { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
+    .sub-card .price {
+      font-size: 0.85rem;
+      color: var(--gray);
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sub-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .sub-card ul li {
+      font-size: 0.85rem;
+      color: #555;
+      padding-left: 20px;
+      position: relative;
+      line-height: 1.6;
+    }
+    .sub-card ul li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: var(--teal);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+    .btn-outline {
+      display: block;
+      text-align: center;
+      border: 1.5px solid var(--teal);
+      color: var(--teal);
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-outline:hover { background: var(--teal); color: #fff; }
+    .btn-filled {
+      display: block;
+      text-align: center;
+      background: var(--teal);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 5px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn-filled:hover { background: var(--blue-l); }
+
+    /* ── Footer ── */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.5);
+      padding: 48px 40px 32px;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 40px;
+      flex-wrap: wrap;
+      padding-bottom: 32px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 24px;
+    }
+    .footer-brand .logo { font-size: 1.3rem; margin-bottom: 10px; }
+    .footer-brand p { font-size: 0.8rem; line-height: 1.7; max-width: 260px; }
+    .footer-links h4 { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 14px; letter-spacing: 0.08em; text-transform: uppercase; }
+    .footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .footer-links ul li a { font-size: 0.8rem; transition: color 0.2s; }
+    .footer-links ul li a:hover { color: var(--teal); }
+    .footer-copy { text-align: center; font-size: 0.75rem; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      section { padding: 72px 24px; }
+      header { padding: 0 24px; }
+      .about .section-inner,
+      .community .section-inner { grid-template-columns: 1fr; gap: 48px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .goal-grid { grid-template-columns: 1fr; }
+      .sub-grid { grid-template-columns: 1fr; }
+      .sub-card.featured { transform: none; }
+      .footer-inner { flex-direction: column; }
+    }
+    @media (max-width: 600px) {
+      nav .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════ HEADER ════ -->
+<header>
+  <div class="logo">Catch<span>AIT</span></div>
+  <nav>
+    <div class="nav-links" style="display:flex;gap:24px;">
+      <a href="#about">サービスについて</a>
+      <a href="#features">技術</a>
+      <a href="#goal">ゴール</a>
+      <a href="#community">コミュニティ</a>
+    </div>
+    <a href="#contact" class="btn-cta">いますぐ無料相談</a>
+  </nav>
+</header>
+
+
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <div class="hero-content">
+    <span class="hero-eyebrow">Catch8 / キャッチエイト</span>
+    <h1>
+      あなたの業務や生活を<br />
+      <em>快適にする</em>方法があります
+    </h1>
+    <p>
+      個人・個人事業主・小規模企業向けに、IT環境の運用を最適化し、<br />
+      便利なアイデア・ノウハウ・ツールを提供するサービスです。
+    </p>
+    <div class="hero-actions">
+      <a href="#contact" class="btn-primary">いますぐ無料相談</a>
+      <a href="#features" class="btn-secondary">サービスを見る</a>
+    </div>
+  </div>
+  <div class="scroll-hint">SCROLL</div>
+</section>
+
+
+<!-- ════ ABOUT ════ -->
+<section class="about" id="about">
+  <div class="section-inner">
+    <div>
+      <div class="section-label">About Catchait</div>
+      <h2 class="section-title">
+        あなたのまわりのIT環境を整え、<br />
+        快適な生活や業務の<br />手助けになりたい
+      </h2>
+      <p class="section-desc">
+        Catch8(キャッチエイト)は主に個人、個人事業主、あるいは比較的小規模でIT環境やツールなどを
+        自製で運用している企業向けに、その運用を最適化する、あるいは利便性の向上をもたらすための
+        アイデア、ノウハウ、ツールを提供するサービスです。<br /><br />
+        時代に沿った技術を活用した運用の提案をし、快適な生活や業務の手助けになりたいと考えています。
+      </p>
+    </div>
+    <div>
+      <p style="font-size:0.85rem;font-weight:600;color:#888;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">こんな悩みはありませんか？</p>
+      <ul class="pain-list">
+        <li>PCソフト（Excelなど）でデータ処理や書類作成を自己流でやっているが、もう少し効率的にやりたい</li>
+        <li>お金などの機密データを取り扱う処理の方法について、データを見せづらいため知り合いに相談できない</li>
+        <li>巷ではAIが常に騒がれているが自分の仕事に使えるの？乗り遅れたくないとは思っている</li>
+        <li>最新の技術について（PC・スマホ・タブレット）事例をもとに一から勉強したいが方法がわからない</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════ FEATURES ════ -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="features-header">
+      <div class="section-label">最新技術で解決</div>
+      <h2 class="section-title">最新の技術はあなたの生活や<br />業務を劇的に進化させます</h2>
+      <p class="section-desc">
+        フリーライブラリ・汎用AI・PC自動化の3本柱で、あなたのニーズに合わせた最適なソリューションを提供します。
+      </p>
+    </div>
+    <div class="features-grid">
+
+      <!-- Card 1 -->
+      <div class="feature-card">
+        <div class="feature-icon">🔧</div>
+        <h3>フリーライブラリの高機能化</h3>
+        <p>
+          汎用的プログラムに実装された無料のライブラリや機能を用いて、
+          あなたの業務や日常に必要なツールをカスタマイズします。
+        </p>
+        <div class="examples">
+          <strong>例：</strong><br />
+          ・ウェブカメラの画像・音声の物体検出、文字読み取りの自動化<br />
+          ・ドキュメントや会話のリアルタイム議事録、翻訳機能の自動化
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>汎用的AIの可用化</h3>
+        <p>
+          個人でAIを使用できるサービスを活用して業務・生活にカスタマイズしたAIを作り、
+          既存のコミュニケーションツールと組み合わせて手軽に使えるAIを構築します。
+        </p>
+        <div class="examples">
+          <strong>例：</strong><br />
+          ・OpenAIとLINEを統合した業務日報システム<br />
+          ・ディープラーニングモデルを用いた判定プログラム
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>PC処理の自動化・スマホ連携</h3>
+        <p>
+          ExcelなどをはじめとしたソフトやWebサービスなどPC上の処理を効率的に自動化し、
+          日常の生活を快適にすることにつなげます。
+        </p>
+        <div class="examples">
+          <strong>例：</strong><br />
+          ・Web情報の自動入出力<br />
+          ・VBAによる自動化処理（Excel / Word / PowerPoint / Outlook 等）
+        </div>
+      </div>
+
+    </div>
+    <p style="text-align:center;margin-top:36px;font-size:0.875rem;color:var(--teal);font-weight:600;">
+      ✦ 過去に提供されたソリューションであれば驚くほど低工数・工期でのご提供が可能です
+    </p>
+    <p style="text-align:center;margin-top:8px;">
+      <a href="#goal" style="font-size:0.875rem;color:var(--blue);text-decoration:underline;">ソリューション例のご紹介はこちら →</a>
+    </p>
+  </div>
+</section>
+
+
+<!-- ════ GOAL ════ -->
+<section class="goal" id="goal">
+  <div class="section-inner">
+    <div class="section-label">Our Goal</div>
+    <h2 class="section-title">使いこなす「あなた」が<br />私たちのゴールです</h2>
+    <p class="section-desc">
+      Catch8はウェブのツールを単なるパッケージ商品として売り出すわけでなく、
+      その技術を使いこなせる「あなた」を育て、スキルを通じて仕事・学習・成長など課題の解決の手助けをしたいと考えています。
+      ニーズに合わせた対応をします。
+    </p>
+    <div class="goal-grid">
+
+      <div class="goal-card">
+        <span class="goal-tag tag-learn">自己成長プラン</span>
+        <h3>ミニマムトレーニングとQAサポート</h3>
+        <p>自身のスキルを成長させ、ご自身でツール構築したいかたへ</p>
+        <ul>
+          <li>継続的なトレーニングプログラム</li>
+          <li>QAサポートで疑問を即解決</li>
+          <li>ご自身で開発できるようになるまで伴走</li>
+        </ul>
+      </div>
+
+      <div class="goal-card">
+        <span class="goal-tag tag-quick">スピード導入プラン</span>
+        <h3>開発の発注と運用インストラクション</h3>
+        <p>ツールを早く導入してご利用になりたいかたへ</p>
+        <ul>
+          <li>要望が発生した際にスポット的に発注</li>
+          <li>開発部分は弊社、運用部分はご自身で担当</li>
+          <li>ご自身で開発したい部分との組み合わせも可能</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ════ COMMUNITY ════ -->
+<section class="community" id="community">
+  <div class="section-inner">
+    <div>
+      <div class="section-label">Community</div>
+      <h2 class="section-title">
+        利便性をもたらすITツールを<br />
+        創りたい方々との交流を<br />求めています
+      </h2>
+      <p class="section-desc">
+        人々のニーズに合ったツールを開発し、世の中をもっと便利に・快適にするものを
+        実現させたいという方々のコンタクトをお待ちしています。
+      </p>
+      <ul class="community-reasons">
+        <li>メンバーと交流し知識や刺激を得たい</li>
+        <li>空いた時間を活用したい</li>
+        <li>実社会のニーズに合わせたツール開発をしたい</li>
+        <li>産業に役立つツールを作りたいという情熱をお持ちの方も募集しています</li>
+      </ul>
+    </div>
+    <div class="community-cta-box" id="contact">
+      <h3>まずは無料でご相談ください</h3>
+      <p>
+        あなたの業務や生活の課題をヒアリングし、<br />
+        最適なIT活用のご提案をします。<br />
+        初回相談は完全無料です。
+      </p>
+      <a href="https://shotatobimatsu.wixsite.com/mysite/booking-calendar/初回無料相談" class="btn-primary" style="display:inline-block;">いますぐお問い合わせ</a>
+    </div>
+  </div>
+</section>
+
+
+<!-- ════ SUBSCRIPTION ════ -->
+<section class="subscription" id="subscription">
+  <div class="section-inner">
+    <div class="section-label">Plans</div>
+    <h2 class="section-title">サブスクプランによってあなたの<br />時々のニーズに柔軟に対応します</h2>
+    <p class="section-desc">
+      プランの継続・変更・停止もWebから簡単に行うことができ、電話連絡や説明などの手間を要しません。
+    </p>
+    <div class="sub-grid">
+
+      <div class="sub-card">
+        <h3>ライトプラン</h3>
+        <p class="price">月額 お問い合わせ</p>
+        <ul>
+          <li>QAサポート（月8回まで）</li>
+          <li>ミニマムトレーニング</li>
+          <li>メール・チャットサポート</li>
+        </ul>
+        <a href="#contact" class="btn-outline">プランを見る</a>
+      </div>
+
+      <div class="sub-card featured">
+        <div class="featured-badge">おすすめ</div>
+        <h3>スタンダードプラン</h3>
+        <p class="price">月額 お問い合わせ</p>
+        <ul>
+          <li>QAサポート（無制限）</li>
+          <li>継続トレーニングプログラム</li>
+          <li>スポット開発の優先対応</li>
+          <li>月次レビューミーティング</li>
+        </ul>
+        <a href="#contact" class="btn-filled">プランを見る</a>
+      </div>
+
+      <div class="sub-card">
+        <h3>プレミアムプラン</h3>
+        <p class="price">月額 お問い合わせ</p>
+        <ul>
+          <li>スタンダードプランの全内容</li>
+          <li>開発丸ごと発注対応</li>
+          <li>運用インストラクション込み</li>
+          <li>専任担当者アサイン</li>
+        </ul>
+        <a href="#contact" class="btn-outline">プランを見る</a>
+      </div>
+
+    </div>
+    <p style="text-align:center;margin-top:40px;">
+      <a href="#contact" class="btn-primary" style="display:inline-block;">いますぐプランを見る</a>
+    </p>
+  </div>
+</section>
+
+
+<!-- ════ FOOTER ════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="logo">Catch<span>AIT</span></div>
+      <p>
+        個人・個人事業主・小規模企業向けに、IT環境の運用を最適化し、
+        便利なアイデア・ノウハウ・ツールを提供するサービスです。
+      </p>
+    </div>
+    <div class="footer-links">
+      <h4>サービス</h4>
+      <ul>
+        <li><a href="#about">サービスについて</a></li>
+        <li><a href="#features">提供技術</a></li>
+        <li><a href="#goal">ゴールとプラン</a></li>
+        <li><a href="#subscription">サブスクプラン</a></li>
+      </ul>
+    </div>
+    <div class="footer-links">
+      <h4>お問い合わせ</h4>
+      <ul>
+        <li><a href="#contact">無料相談申し込み</a></li>
+        <li><a href="#community">コミュニティ参加</a></li>
+        <li><a href="https://shotatobimatsu.wixsite.com/mysite/booking-calendar/初回無料相談">予約カレンダー</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-copy">
+    &copy; 2024 CatchAIT / Catch8. All rights reserved.
+  </div>
+</footer>
+
+</body>
+</html>
