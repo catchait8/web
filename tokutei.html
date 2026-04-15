@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>特定商取引法に基づく表示 | Catchait</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+      color: #222;
+      background: #f4f7fb;
+      line-height: 1.7;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    :root {
+      --navy:  #0f1b2d;
+      --teal:  #0ea5e9;
+      --dark:  #1a2a3a;
+      --gray:  #6b7280;
+      --light: #f4f7fb;
+      --white: #ffffff;
+      --border: #e5e7eb;
+    }
+
+    /* Header */
+    header {
+      background: var(--navy);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-size: 1.4rem; font-weight: 700; color: #fff; letter-spacing: 0.04em; }
+    .logo span { color: var(--teal); }
+    .back-link {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: #fff; }
+
+    /* Hero */
+    .page-hero {
+      background: var(--navy);
+      padding: 48px 40px 56px;
+      text-align: center;
+    }
+    .page-hero h1 {
+      font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .page-hero p { font-size: 0.875rem; color: rgba(255,255,255,0.5); }
+
+    /* Main content */
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 56px 24px 96px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    tr {
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child { border-bottom: none; }
+    th {
+      width: 35%;
+      padding: 20px 24px;
+      background: var(--light);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--dark);
+      text-align: left;
+      vertical-align: top;
+      border-right: 1px solid var(--border);
+    }
+    td {
+      padding: 20px 24px;
+      font-size: 0.9rem;
+      color: #444;
+      line-height: 1.8;
+      vertical-align: top;
+    }
+    td a {
+      color: var(--teal);
+      text-decoration: underline;
+    }
+    td a:hover { opacity: 0.8; }
+
+    .note {
+      background: #fff8e1;
+      border-left: 3px solid #f59e0b;
+      border-radius: 0 6px 6px 0;
+      padding: 14px 18px;
+      font-size: 0.82rem;
+      color: #78500a;
+      margin-top: 24px;
+      line-height: 1.8;
+    }
+
+    .updated {
+      text-align: right;
+      font-size: 0.78rem;
+      color: var(--gray);
+      margin-top: 32px;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--navy);
+      color: rgba(255,255,255,0.5);
+      padding: 32px 40px;
+      text-align: center;
+      font-size: 0.78rem;
+    }
+    footer a { color: rgba(255,255,255,0.5); }
+    footer a:hover { color: var(--teal); }
+
+    @media (max-width: 600px) {
+      header { padding: 0 20px; }
+      .page-hero { padding: 40px 20px 48px; }
+      th { width: 40%; padding: 16px; font-size: 0.8rem; }
+      td { padding: 16px; font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">Catch<span>AIT</span></div>
+  <a href="index.html" class="back-link">← ホームへ戻る</a>
+</header>
+
+<!-- Page Hero -->
+<div class="page-hero">
+  <h1>特定商取引法に基づく表示</h1>
+  <p>Specified Commercial Transactions Act</p>
+</div>
+
+<!-- Main -->
+<main>
+  <div class="card">
+    <table>
+      <tr>
+        <th>販売事業者名</th>
+        <td>Catch8（キャッチエイト）</td>
+      </tr>
+      <tr>
+        <th>運営責任者</th>
+        <td>飛松章太</td>
+      </tr>
+      <tr>
+        <th>所在地</th>
+        <td>お問い合わせいただいた際に、遅滞なく開示いたします。</td>
+      </tr>
+      <tr>
+        <th>電話番号</th>
+        <td>090-5536-7113<br /><span style="font-size:0.8rem;color:#888;">（受付時間：平日 10:00〜18:00）</span></td>
+      </tr>
+      <tr>
+        <th>メールアドレス</th>
+        <td><a href="mailto:catch.ait.8@gmail.com">catch.ait.8@gmail.com</a></td>
+      </tr>
+      <tr>
+        <th>サービス料金</th>
+        <td>詳細はホームページをご確認ください。<br />
+          <a href="index.html#subscription">プラン一覧はこちら →</a>
+        </td>
+      </tr>
+      <tr>
+        <th>料金以外の費用</th>
+        <td>なし（通信料はお客様のご負担となります）</td>
+      </tr>
+      <tr>
+        <th>支払方法</th>
+        <td>クレジットカード決済</td>
+      </tr>
+      <tr>
+        <th>支払時期</th>
+        <td>お申し込み時にお支払いいただきます。</td>
+      </tr>
+      <tr>
+        <th>サービス提供時期</th>
+        <td>お申し込み後、速やかに提供いたします。</td>
+      </tr>
+      <tr>
+        <th>キャンセル・返金</th>
+        <td>サービス開始後はキャンセルおよびご返金はお受けできません。<br />
+          <span style="font-size:0.82rem;color:#888;">※サービス開始前のキャンセルについてはお問い合わせください。</span>
+        </td>
+      </tr>
+      <tr>
+        <th>動作環境</th>
+        <td>最新バージョンの主要ブラウザ（Chrome / Safari / Edge）を推奨します。</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="note">
+    ※ 本表示は特定商取引法第11条（通信販売の広告）に基づくものです。<br />
+    ※ 記載内容は予告なく変更される場合があります。
+  </div>
+
+  <p class="updated">最終更新日：2025年4月</p>
+</main>
+
+<!-- Footer -->
+<footer>
+  <p>&copy; 2024 CatchAIT / Catch8. All rights reserved. ｜ <a href="index.html">ホームへ戻る</a></p>
+</footer>
+
+</body>
+</html>
