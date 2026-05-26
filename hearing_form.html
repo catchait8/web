@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI/IT ヒアリングシート | Catchait</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --navy:   #0f1b2d;
+      --dark:   #1a2a3a;
+      --blue:   #2563eb;
+      --blue-l: #3b82f6;
+      --teal:   #0ea5e9;
+      --light:  #f4f7fb;
+      --gray:   #6b7280;
+      --border: #e5e7eb;
+      --white:  #ffffff;
+      --error:  #ef4444;
+    }
+
+    body {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+      color: #222;
+      background: var(--light);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Hero header ── */
+    .hero {
+      position: relative;
+      background: var(--navy);
+      padding: 80px 24px 96px;
+      text-align: center;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg,
+        #0f1b2d 0%, #0d2847 35%, #0a1f3c 55%, #162033 75%, #0f1b2d 100%);
+    }
+    .hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 40%,
+        rgba(14, 165, 233, 0.18) 0%, transparent 70%);
+    }
+    .hero-inner { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; }
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 0.75rem; font-weight: 500;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--teal);
+      border: 1px solid rgba(14,165,233,0.4);
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 22px;
+    }
+    .hero h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 700; color: #fff;
+      line-height: 1.45; letter-spacing: 0.02em;
+      margin-bottom: 20px;
+    }
+    .hero h1 em { color: var(--teal); font-style: normal; }
+    .hero p {
+      color: rgba(255,255,255,0.72);
+      font-size: 0.95rem; line-height: 1.9;
+      max-width: 580px; margin: 0 auto;
+    }
+
+    /* ── Form container ── */
+    .form-wrap {
+      max-width: 760px;
+      margin: -56px auto 80px;
+      padding: 0 20px;
+      position: relative; z-index: 3;
+    }
+    form {
+      background: var(--white);
+      border-radius: 14px;
+      box-shadow: 0 12px 40px rgba(15, 27, 45, 0.10);
+      padding: 48px 44px;
+    }
+
+    /* ── Question card ── */
+    .q {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .q:first-of-type { padding-top: 8px; }
+    .q:last-of-type  { border-bottom: none; }
+
+    .q-label {
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .q-label .req {
+      color: var(--error);
+      letter-spacing: 0;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .q-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--dark);
+      line-height: 1.65;
+      margin-bottom: 8px;
+    }
+    .q-desc {
+      font-size: 0.83rem;
+      color: var(--gray);
+      line-height: 1.8;
+      margin-bottom: 18px;
+    }
+    .q-body { margin-top: 16px; }
+
+    /* ── Choice list (radio / checkbox) ── */
+    .choices { display: flex; flex-direction: column; gap: 10px; }
+    .choice {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 18px;
+      background: var(--light);
+      border: 1px solid transparent;
+      border-left: 3px solid transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      font-size: 0.9rem;
+      color: #444;
+      line-height: 1.6;
+    }
+    .choice:hover {
+      background: #eef3fa;
+      border-left-color: rgba(14,165,233,0.4);
+    }
+    .choice input { margin-top: 4px; accent-color: var(--teal); cursor: pointer; }
+    .choice input:checked ~ .choice-text { color: var(--dark); font-weight: 500; }
+    .choice:has(input:checked) {
+      background: rgba(14,165,233,0.06);
+      border-color: rgba(14,165,233,0.25);
+      border-left-color: var(--teal);
+    }
+    .choice-text { flex: 1; }
+
+    .other-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      background: var(--light);
+      border-radius: 8px;
+      border-left: 3px solid transparent;
+    }
+    .other-row label { font-size: 0.9rem; color: #444; white-space: nowrap; }
+    .other-row input[type="text"] {
+      flex: 1;
+      border: none; background: transparent;
+      border-bottom: 1px solid var(--border);
+      padding: 4px 0;
+      font-family: inherit; font-size: 0.9rem; color: var(--dark);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .other-row input[type="text"]:focus { border-bottom-color: var(--teal); }
+
+    /* ── Text input ── */
+    .text-input {
+      width: 100%;
+      border: none;
+      border-bottom: 1.5px solid var(--border);
+      padding: 10px 2px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--dark);
+      background: transparent;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .text-input:focus { border-bottom-color: var(--teal); }
+    .text-input::placeholder { color: #b0b6bf; }
+
+    /* ── Contact group (Q4) ── */
+    .contact-group {
+      display: flex; flex-direction: column; gap: 22px;
+      margin-top: 8px;
+      padding: 22px 24px;
+      background: var(--light);
+      border-radius: 10px;
+      border-left: 3px solid var(--teal);
+      transition: opacity 0.2s;
+    }
+    .contact-group.disabled { opacity: 0.4; pointer-events: none; }
+    .contact-field label {
+      display: block;
+      font-size: 0.85rem; font-weight: 500;
+      color: var(--dark);
+      margin-bottom: 4px;
+    }
+    .contact-field .text-input { background: var(--white); padding: 10px 14px; border-radius: 6px; border: 1px solid var(--border); }
+    .contact-field .text-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14,165,233,0.12); }
+
+    /* ── Submit button ── */
+    .actions {
+      margin-top: 36px;
+      display: flex; gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-primary {
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      padding: 14px 36px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-weight: 600; font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(14,165,233,0.35);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--blue-l);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(14,165,233,0.45);
+    }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .form-note {
+      font-size: 0.78rem;
+      color: var(--gray);
+    }
+
+    /* ── Status messages ── */
+    .status {
+      margin-top: 22px;
+      padding: 14px 18px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      display: none;
+    }
+    .status.success { display: block; background: rgba(14,165,233,0.08); color: #0369a1; border-left: 3px solid var(--teal); }
+    .status.error   { display: block; background: rgba(239,68,68,0.08); color: #b91c1c;  border-left: 3px solid var(--error); }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      color: var(--gray);
+      font-size: 0.78rem;
+      padding: 30px 20px 50px;
+      letter-spacing: 0.05em;
+    }
+    footer span { color: var(--teal); font-weight: 600; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .hero { padding: 60px 20px 80px; }
+      .form-wrap { margin-top: -40px; padding: 0 14px; }
+      form { padding: 32px 22px; }
+      .q { padding: 22px 0; }
+      .choice, .other-row { padding: 12px 14px; font-size: 0.88rem; }
+      .contact-group { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="hero-eyebrow">Hearing Sheet</span>
+      <h1>AI/IT <em>ヒアリング</em>シート</h1>
+      <p>ようこそ! こちらは AI や IT に関するあなたの関心度を確認するアンケートです。<br>所要時間は 1〜2 分ほど。お気軽にお答えください。</p>
+    </div>
+  </header>
+
+  <main class="form-wrap">
+    <form id="hearingForm" novalidate>
+
+      <!-- Q1 -->
+      <div class="q">
+        <div class="q-label">Q1<span class="req">必須</span></div>
+        <div class="q-title">あなたは最近の AI に対してどの程度の期待、興味をお持ちでしょうか。</div>
+        <div class="q-body">
+          <div class="choices" data-name="q1">
+            <label class="choice"><input type="radio" name="q1" value="革新的な技術であり、ぜひ使いこなせるようになりたい。" required><span class="choice-text">革新的な技術であり、ぜひ使いこなせるようになりたい。</span></label>
+            <label class="choice"><input type="radio" name="q1" value="期待度はある。できれば使えるようになりたい。"><span class="choice-text">期待度はある。できれば使えるようになりたい。</span></label>
+            <label class="choice"><input type="radio" name="q1" value="中立的。使用するかどうかは今後の意向を見て決めたい。"><span class="choice-text">中立的。使用するかどうかは今後の意向を見て決めたい。</span></label>
+            <label class="choice"><input type="radio" name="q1" value="やや過熱しすぎな感があると思う。"><span class="choice-text">やや過熱しすぎな感があると思う。</span></label>
+            <label class="choice"><input type="radio" name="q1" value="特に期待していない"><span class="choice-text">特に期待していない</span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="q">
+        <div class="q-label">Q2</div>
+        <div class="q-title">Q1 で興味や期待があると答えた方へ。</div>
+        <div class="q-desc">以下のなかでどういったトピック・方向性に興味をお持ちでしょうか。気になるものにすべてチェックをつけてください。</div>
+        <div class="q-body">
+          <div class="choices">
+            <label class="choice"><input type="checkbox" name="q2" value="AIの仕事への活用全般(AIをどのように活かせるのか?)"><span class="choice-text">AI の仕事への活用全般 (AI をどのように活かせるのか?)</span></label>
+            <label class="choice"><input type="checkbox" name="q2" value="AIによる方針の提案・意思決定"><span class="choice-text">AI による方針の提案・意思決定</span></label>
+            <label class="choice"><input type="checkbox" name="q2" value="AIによる文書・資料生成(応答作成など)"><span class="choice-text">AI による文書・資料生成 (応答作成など)</span></label>
+            <label class="choice"><input type="checkbox" name="q2" value="AIによる多言語への対応、グローバルコミュニケーションツール"><span class="choice-text">AI による多言語への対応、グローバルコミュニケーションツール</span></label>
+            <label class="choice"><input type="checkbox" name="q2" value="AIによる業務の自動化 1.自動監視と通知"><span class="choice-text">AI による業務の自動化 1. 自動監視と通知</span></label>
+            <label class="choice"><input type="checkbox" name="q2" value="AIによる業務の自動化 2.PC/Web操作の自動化"><span class="choice-text">AI による業務の自動化 2. PC / Web 操作の自動化</span></label>
+            <label class="choice"><input type="checkbox" name="q2" value="AIによる業務の自動化 3.会議議事録、妥当性判定の自動化"><span class="choice-text">AI による業務の自動化 3. 会議議事録、妥当性判定の自動化</span></label>
+            <label class="choice"><input type="checkbox" name="q2" value="AIによる業務の自動化 4.SNSの情報取得、発信の自動化"><span class="choice-text">AI による業務の自動化 4. SNS の情報取得、発信の自動化</span></label>
+            <label class="choice"><input type="checkbox" name="q2" value="AIによる個人の情報管理の効率化(健康診断、家計簿など)"><span class="choice-text">AI による個人の情報管理の効率化 (健康診断、家計簿など)</span></label>
+            <label class="choice"><input type="checkbox" name="q2" value="AIによる映像、音声の生成とその活用方法"><span class="choice-text">AI による映像、音声の生成とその活用方法</span></label>
+            <div class="other-row">
+              <label for="q2_other">その他:</label>
+              <input type="text" id="q2_other" name="q2_other" placeholder="自由記入" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="q">
+        <div class="q-label">Q3<span class="req">必須</span></div>
+        <div class="q-title">Q1 / 2 へ回答いただいた方へ。</div>
+        <div class="q-desc">あなたの現在の環境、業務をもとにご提案についての無料相談を希望しますか。<br>(会話はオンライン or 対面で 30 分程度を想定)</div>
+        <div class="q-body">
+          <div class="choices">
+            <label class="choice"><input type="radio" name="q3" value="はい" required><span class="choice-text">はい</span></label>
+            <label class="choice"><input type="radio" name="q3" value="いいえ"><span class="choice-text">いいえ</span></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Q4: contact (conditional on Q3=はい) -->
+      <div class="q">
+        <div class="q-label">Q4</div>
+        <div class="q-title">Q3 で「はい」と回答した方へ。よろしければ連絡先をお教えください。</div>
+        <div class="q-desc">上記は相談のお話する際のコンタクト情報として使用され、その他の用途で使用されることはありません。</div>
+        <div class="q-body">
+          <div class="contact-group disabled" id="contactGroup">
+            <div class="contact-field">
+              <label for="name">お名前 (またはニックネーム)</label>
+              <input type="text" id="name" name="name" class="text-input" autocomplete="name" placeholder="例) 山田 太郎" />
+            </div>
+            <div class="contact-field">
+              <label for="email">メールアドレス</label>
+              <input type="email" id="email" name="email" class="text-input" autocomplete="email" placeholder="example@catchait.jp" />
+            </div>
+            <div class="contact-field">
+              <label for="phone">電話番号</label>
+              <input type="tel" id="phone" name="phone" class="text-input" autocomplete="tel" placeholder="例) 090-1234-5678" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn-primary" id="submitBtn">送信する</button>
+        <span class="form-note">送信後、Catchait より折り返しご連絡いたします。</span>
+      </div>
+
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </form>
+  </main>
+
+  <footer>
+    Powered by <span>Catchait</span> &middot; AI / IT Consulting
+  </footer>
+
+  <script>
+    /* ─────────────────────────────────────────────
+       Google Form 連携設定
+       Form ID は viewform URL の /e/<ここ> 部分です
+    ───────────────────────────────────────────── */
+    const FORM_ID = '1FAIpQLSd6UjHWClyVfutnkHLgyenR8mNjgNVfVGF_MY_Zx0LHSwRhng';
+    const FORM_ACTION = `https://docs.google.com/forms/d/e/${FORM_ID}/formResponse`;
+
+    // 各質問の entry.xxxxx ID (Google Form の HTML から抽出済み)
+    const ENTRY = {
+      q1:    'entry.656009063',
+      q2:    'entry.497761298',           // checkbox: 複数 append
+      q2_other:    'entry.497761298.other_option_response',
+      q2_sentinel: 'entry.497761298',     // __other_option__ センチネル
+      q3:    'entry.1682807607',
+      name:  'entry.2106525102',
+      email: 'entry.1460773376',
+      phone: 'entry.1131823744',
+    };
+
+    /* ─────────────────────────────────────────────
+       Q3 で「はい」を選んだ場合のみ連絡先を有効化
+    ───────────────────────────────────────────── */
+    const contactGroup = document.getElementById('contactGroup');
+    document.querySelectorAll('input[name="q3"]').forEach(el => {
+      el.addEventListener('change', () => {
+        const yes = document.querySelector('input[name="q3"]:checked')?.value === 'はい';
+        contactGroup.classList.toggle('disabled', !yes);
+      });
+    });
+
+    /* ─────────────────────────────────────────────
+       送信処理
+    ───────────────────────────────────────────── */
+    const form = document.getElementById('hearingForm');
+    const statusEl = document.getElementById('status');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusEl.className = 'status';
+      statusEl.textContent = '';
+
+      // 簡易バリデーション
+      const q1 = form.q1.value;
+      const q3 = form.q3.value;
+      if (!q1 || !q3) {
+        showStatus('error', '必須項目 (Q1 / Q3) にご回答ください。');
+        return;
+      }
+
+      const fd = new FormData();
+      fd.append(ENTRY.q1, q1);
+      fd.append(ENTRY.q3, q3);
+
+      // Q2 (checkboxes) — 複数選択を全て append
+      document.querySelectorAll('input[name="q2"]:checked').forEach(cb => {
+        fd.append(ENTRY.q2, cb.value);
+      });
+      // Q2 その他
+      const q2Other = form.q2_other.value.trim();
+      if (q2Other) {
+        fd.append(ENTRY.q2_sentinel, '__other_option__');
+        fd.append(ENTRY.q2_other, q2Other);
+      }
+
+      // 連絡先 (Q3 = はい のときのみ)
+      if (q3 === 'はい') {
+        if (form.name.value.trim())  fd.append(ENTRY.name,  form.name.value.trim());
+        if (form.email.value.trim()) fd.append(ENTRY.email, form.email.value.trim());
+        if (form.phone.value.trim()) fd.append(ENTRY.phone, form.phone.value.trim());
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '送信中…';
+
+      try {
+        // Google Form は CORS を許可していないため no-cors で投げる (レスポンス本文は読めないが書き込みは成功する)
+        await fetch(FORM_ACTION, {
+          method: 'POST',
+          mode: 'no-cors',
+          body: fd,
+        });
+        showStatus('success', '送信が完了しました。ご回答ありがとうございました。');
+        form.reset();
+        contactGroup.classList.add('disabled');
+      } catch (err) {
+        showStatus('error', '送信に失敗しました。時間をおいて再度お試しください。');
+        console.error(err);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '送信する';
+      }
+    });
+
+    function showStatus(type, msg) {
+      statusEl.className = `status ${type}`;
+      statusEl.textContent = msg;
+      statusEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  </script>
+</body>
+</html>
