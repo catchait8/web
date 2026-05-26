@@ -189,6 +189,25 @@
     .text-input:focus { border-bottom-color: var(--teal); }
     .text-input::placeholder { color: #b0b6bf; }
 
+    /* ── Textarea ── */
+    .textarea-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--dark);
+      background: var(--white);
+      outline: none;
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.7;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .textarea-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14,165,233,0.12); }
+    .textarea-input::placeholder { color: #b0b6bf; }
+
     /* ── Contact group (Q4) ── */
     .contact-group {
       display: flex; flex-direction: column; gap: 22px;
@@ -360,6 +379,16 @@
         </div>
       </div>
 
+      <!-- Q5: free-form remarks (optional, paragraph) -->
+      <div class="q">
+        <div class="q-label">Q5<span style="color:var(--gray); letter-spacing:0; font-size:0.75rem; font-weight:500;">任意</span></div>
+        <div class="q-title">その他ご相談の内容、確認したいことなど</div>
+        <div class="q-desc">気になるトピック、現状の課題、知りたいことなど自由にご記入ください。</div>
+        <div class="q-body">
+          <textarea id="remarks" name="remarks" class="textarea-input" rows="5" placeholder="例) 社内文書を AI で要約したいが、機密情報の扱いが気になっています。"></textarea>
+        </div>
+      </div>
+
       <div class="actions">
         <button type="submit" class="btn-primary" id="submitBtn">送信する</button>
         <span class="form-note">送信後、Catchait より折り返しご連絡いたします。</span>
@@ -388,9 +417,10 @@
       q2_other:    'entry.497761298.other_option_response',
       q2_sentinel: 'entry.497761298',     // __other_option__ センチネル
       q3:    'entry.1682807607',
-      name:  'entry.2106525102',
-      email: 'entry.1460773376',
-      phone: 'entry.1131823744',
+      name:    'entry.2106525102',
+      email:   'entry.1460773376',
+      phone:   'entry.1131823744',
+      remarks: 'entry.1423164391',        // Q5: その他ご相談 (任意・長文)
     };
 
     /* ─────────────────────────────────────────────
@@ -445,6 +475,10 @@
         if (form.email.value.trim()) fd.append(ENTRY.email, form.email.value.trim());
         if (form.phone.value.trim()) fd.append(ENTRY.phone, form.phone.value.trim());
       }
+
+      // Q5 その他ご相談 (任意・Q3 の値に関わらず送信)
+      const remarks = form.remarks.value.trim();
+      if (remarks) fd.append(ENTRY.remarks, remarks);
 
       submitBtn.disabled = true;
       submitBtn.textContent = '送信中…';
