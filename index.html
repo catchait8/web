@@ -73,6 +73,65 @@
     }
     .btn-cta:hover { background: var(--blue-l); transform: translateY(-1px); }
 
+    /* ── Hamburger button (mobile only) ── */
+    .hamburger {
+      display: none;
+      width: 40px; height: 40px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      cursor: pointer;
+      padding: 0;
+      position: relative;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .hamburger:hover { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.05); }
+    .hamburger span {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 18px;
+      height: 1.5px;
+      background: #fff;
+      border-radius: 2px;
+      transform: translate(-50%, -50%);
+      transition: transform 0.25s, opacity 0.2s, top 0.25s;
+    }
+    .hamburger span:nth-child(1) { transform: translate(-50%, calc(-50% - 6px)); }
+    .hamburger span:nth-child(3) { transform: translate(-50%, calc(-50% + 6px)); }
+    .hamburger.open span:nth-child(1) { transform: translate(-50%, -50%) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translate(-50%, -50%) rotate(-45deg); }
+
+    /* ── Mobile drawer ── */
+    .mobile-drawer {
+      position: fixed;
+      top: 64px; left: 0; right: 0;
+      background: rgba(15, 27, 45, 0.97);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      padding: 8px 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transform: translateY(-110%);
+      opacity: 0;
+      transition: transform 0.3s ease, opacity 0.25s ease;
+      z-index: 99;
+      pointer-events: none;
+    }
+    .mobile-drawer.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .mobile-drawer a {
+      color: rgba(255,255,255,0.85);
+      font-size: 0.95rem;
+      font-weight: 400;
+      padding: 14px 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      transition: color 0.15s, padding-left 0.15s;
+    }
+    .mobile-drawer a:last-child { border-bottom: none; }
+    .mobile-drawer a:hover { color: var(--teal); padding-left: 14px; }
+
     /* ── Hero ── */
     .hero {
       position: relative;
@@ -503,8 +562,22 @@
       .sub-card.featured { transform: none; }
       .footer-inner { flex-direction: column; }
     }
-    @media (max-width: 600px) {
+    @media (max-width: 768px) {
+      header { padding: 0 16px; }
+      .logo { font-size: 1.25rem; }
+      nav { gap: 10px; }
       nav .nav-links { display: none; }
+      .hamburger { display: block; }
+      .btn-cta {
+        padding: 7px 12px;
+        font-size: 0.78rem;
+        white-space: nowrap;
+      }
+    }
+    @media (max-width: 360px) {
+      .logo { font-size: 1.1rem; }
+      .btn-cta { padding: 6px 10px; font-size: 0.72rem; }
+      .hamburger { width: 36px; height: 36px; }
     }
   </style>
 </head>
@@ -520,9 +593,57 @@
       <a href="#goal">ゴール</a>
       <a href="#community">コミュニティ</a>
     </div>
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLSd6UjHWClyVfutnkHLgyenR8mNjgNVfVGF_MY_Zx0LHSwRhng/viewform?usp=sharing&ouid=117079309369767988813" target="_blank" class="btn-cta">いますぐ無料相談</a>
+    <a href="https://catchait8.github.io/web/hearing_form.html" target="_blank" class="btn-cta">いますぐ無料相談</a>
+    <button class="hamburger" id="hamburger" type="button" aria-label="メニューを開く" aria-controls="mobileDrawer" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
   </nav>
 </header>
+
+<!-- ════ MOBILE DRAWER ════ -->
+<div class="mobile-drawer" id="mobileDrawer" role="navigation" aria-label="モバイルメニュー">
+  <a href="#about">サービスについて</a>
+  <a href="#features">技術</a>
+  <a href="#goal">ゴール</a>
+  <a href="#community">コミュニティ</a>
+</div>
+
+<script>
+  (function () {
+    const btn    = document.getElementById('hamburger');
+    const drawer = document.getElementById('mobileDrawer');
+    if (!btn || !drawer) return;
+
+    const close = () => {
+      btn.classList.remove('open');
+      drawer.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    };
+    const toggle = () => {
+      const isOpen = btn.classList.toggle('open');
+      drawer.classList.toggle('open', isOpen);
+      btn.setAttribute('aria-expanded', String(isOpen));
+    };
+
+    btn.addEventListener('click', toggle);
+
+    // Close when a drawer link is clicked (anchor navigation)
+    drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+
+    // Close when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!drawer.classList.contains('open')) return;
+      if (drawer.contains(e.target) || btn.contains(e.target)) return;
+      close();
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+    // Close if resized to desktop width
+    window.addEventListener('resize', () => { if (window.innerWidth > 768) close(); });
+  })();
+</script>
 
 
 <!-- ════ HERO ════ -->
@@ -538,7 +659,7 @@
       便利なアイデア・ノウハウ・ツールを提供するサービスです。
     </p>
     <div class="hero-actions">
-      <a href="https://docs.google.com/forms/d/e/1FAIpQLSd6UjHWClyVfutnkHLgyenR8mNjgNVfVGF_MY_Zx0LHSwRhng/viewform?usp=sharing&ouid=117079309369767988813" target="_blank" class="btn-primary">いますぐ無料相談</a>
+      <a href="https://catchait8.github.io/web/hearing_form.html" target="_blank" class="btn-primary">いますぐ無料相談</a>
       <a href="#features" class="btn-secondary">サービスを見る</a>
     </div>
   </div>
@@ -709,7 +830,7 @@
         最適なIT活用のご提案をします。<br />
         初回相談は完全無料です。
       </p>
-      <a href="https://docs.google.com/forms/d/e/1FAIpQLSd6UjHWClyVfutnkHLgyenR8mNjgNVfVGF_MY_Zx0LHSwRhng/viewform?usp=sharing&ouid=117079309369767988813" target="_blank" class="btn-primary" style="display:inline-block;">いますぐお問い合わせ</a>
+      <a href="https://catchait8.github.io/web/hearing_form.html" target="_blank" class="btn-primary" style="display:inline-block;">いますぐ無料相談</a>
     </div>
   </div>
 </section>
@@ -791,9 +912,9 @@
     <div class="footer-links">
       <h4>お問い合わせ</h4>
       <ul>
-        <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSd6UjHWClyVfutnkHLgyenR8mNjgNVfVGF_MY_Zx0LHSwRhng/viewform?usp=sharing&ouid=117079309369767988813" target="_blank">無料相談申し込み</a></li>
+        <li><a href="https://catchait8.github.io/web/hearing_form.html" target="_blank">無料相談申し込み</a></li>
         <li><a href="#community">コミュニティ参加</a></li>
-        <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSd6UjHWClyVfutnkHLgyenR8mNjgNVfVGF_MY_Zx0LHSwRhng/viewform?usp=sharing&ouid=117079309369767988813" target="_blank">お問い合わせフォーム</a></li>
+        <li><a href="https://catchait8.github.io/web/hearing_form.html" target="_blank">お問い合わせフォーム</a></li>
       </ul>
     </div>
   </div>
