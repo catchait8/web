@@ -54,7 +54,9 @@
       letter-spacing: 0.04em;
     }
     .logo span { color: var(--teal); }
-    nav { display: flex; align-items: center; gap: 24px; }
+    nav { display: flex; align-items: center; gap: 14px; }
+    /* Inline nav links are unified into the hamburger drawer on every viewport */
+    nav .nav-links { display: none !important; }
     nav a {
       color: rgba(255,255,255,0.8);
       font-size: 0.875rem;
@@ -73,9 +75,9 @@
     }
     .btn-cta:hover { background: var(--blue-l); transform: translateY(-1px); }
 
-    /* ── Hamburger button (mobile only) ── */
+    /* ── Hamburger button (always shown on every screen size) ── */
     .hamburger {
-      display: none;
+      display: block;
       width: 40px; height: 40px;
       background: transparent;
       border: 1px solid rgba(255,255,255,0.2);
@@ -566,8 +568,6 @@
       header { padding: 0 16px; }
       .logo { font-size: 1.25rem; }
       nav { gap: 10px; }
-      nav .nav-links { display: none; }
-      .hamburger { display: block; }
       .btn-cta {
         padding: 7px 12px;
         font-size: 0.78rem;
@@ -606,6 +606,7 @@
   <a href="#features">技術</a>
   <a href="#goal">ゴール</a>
   <a href="#community">コミュニティ</a>
+  <a href="https://catchait8.github.io/web/aboutUS.html">About Us</a>
 </div>
 
 <script>
