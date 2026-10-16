@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Person Detect PoC</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #111; color: #eee; font: 14px -apple-system, sans-serif; padding: 12px; padding-bottom: 40px; }
+  #stage { position: relative; width: 100%; max-width: 640px; margin: 0 auto; background: #000; }
+  video, canvas { width: 100%; display: block; }
+  canvas { position: absolute; inset: 0; }
+  #alert { position: absolute; top: 8px; left: 8px; right: 8px; padding: 8px; text-align: center; font-weight: bold;
+           background: rgba(220,0,0,.85); display: none; border-radius: 6px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 10px 0; max-width: 640px; margin-inline: auto; }
+  button { font-size: 16px; padding: 10px 14px; border-radius: 8px; border: 0; background: #2d6cdf; color: #fff; }
+  button:disabled { background: #444; }
+  select, input { font-size: 15px; padding: 6px; background: #222; color: #eee; border: 1px solid #444; border-radius: 6px; }
+  #stats { max-width: 640px; margin: 8px auto; font: 13px ui-monospace, monospace; white-space: pre-wrap; background: #1a1a1a; padding: 8px; border-radius: 6px; }
+  .logbox { max-width: 640px; margin: 8px auto; background: #1a1a1a; padding: 8px; border-radius: 6px; font: 12px ui-monospace, monospace; white-space: pre-wrap; }
+  #log { height: 150px; overflow-y: auto; }
+  textarea { width: 100%; max-width: 640px; height: 90px; display: block; margin: 8px auto; background: #1a1a1a; color: #ccc; border: 1px solid #333; font: 12px ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <video id="v" playsinline muted autoplay></video>
+  <canvas id="c"></canvas>
+  <div id="alert">PERSON DETECTED</div>
+</div>
+
+<div class="row">
+  <button id="start">開始</button>
+  <button id="stop" disabled>停止</button>
+  <label>目標fps
+    <select id="fps"><option value="0">最大</option><option value="15">15</option><option value="10" selected>10</option><option value="5">5</option><option value="2">2</option></select>
+  </label>
+  <label>閾値 <input id="th" type="number" value="0.5" min="0.1" max="0.95" step="0.05" style="width:60px"></label>
+</div>
+<div class="row">
+  <label>連続検知で通知 <input id="nconf" type="number" value="2" min="1" max="10" style="width:50px">フレーム</label>
+  <label>クールダウン <input id="cool" type="number" value="10" min="0" style="width:50px">秒</label>
+  <label><input id="beep" type="checkbox" checked> 鳴動</label>
+  <label><input id="vib" type="checkbox" checked> 振動(Androidのみ)</label>
+</div>
+
+<div id="stats">未開始</div>
+<div class="logbox"><div id="log"></div></div>
+<div class="row">
+  <label>電池% <input id="batt" type="number" min="0" max="100" style="width:60px"></label>
+  <label>温度メモ <input id="temp" placeholder="例: ほんのり温かい" style="width:140px"></label>
+  <button id="mark">メモ記録</button>
+</div>
+<textarea id="csv" readonly placeholder="1分ごとの統計とメモがCSVで溜まります（コピーして保存）"></textarea>
+<div class="row"><button id="copy">CSVコピー</button></div>
+
+<script type="module">
+import { ObjectDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+const $ = id => document.getElementById(id);
+const video = $("v"), canvas = $("c"), ctx = canvas.getContext("2d");
+const MODEL = "https://storage.googleapis.com/mediapipe-models/object_detector/efficientdet_lite0/float16/1/efficientdet_lite0.tflite";
+
+let detector, stream, wakeLock, running = false, audioCtx;
+let t0, lastFrameTs = 0, lastDetectAt = 0, consec = 0, alertTimer;
+// 集計（1分窓）
+let win = { frames: 0, inferSum: 0, inferMax: 0, alerts: 0, start: 0 };
+let totalFrames = 0, totalAlerts = 0;
+const csvRows = ["elapsed_min,fps,infer_avg_ms,infer_max_ms,alerts,battery_pct,note"];
+
+function log(msg) {
+  const el = $("log");
+  el.textContent += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function init() {
+  const fileset = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  for (const delegate of ["GPU", "CPU"]) {
+    try {
+      detector = await ObjectDetector.createFromOptions(fileset, {
+        baseOptions: { modelAssetPath: MODEL, delegate },
+        runningMode: "VIDEO",
+        scoreThreshold: 0.3,
+        categoryAllowlist: ["person"],
+        maxResults: 10,
+      });
+      log(`モデル読込OK (delegate=${delegate})`);
+      return;
+    } catch (e) { log(`delegate=${delegate} 失敗: ${e.message}`); }
+  }
+  throw new Error("モデル初期化失敗");
+}
+
+function beep() {
+  if (!$("beep").checked || !audioCtx) return;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.frequency.value = 880; o.connect(g); g.connect(audioCtx.destination);
+  g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+  o.start(); o.stop(audioCtx.currentTime + 0.4);
+}
+
+function notify() {
+  totalAlerts++; win.alerts++;
+  beep();
+  if ($("vib").checked && navigator.vibrate) navigator.vibrate(300);
+  const a = $("alert"); a.style.display = "block";
+  clearTimeout(alertTimer); alertTimer = setTimeout(() => a.style.display = "none", 1500);
+  log(`ALERT #${totalAlerts}`);
+}
+
+function loop() {
+  if (!running) return;
+  requestAnimationFrame(loop);
+  if (video.readyState < 2) return;
+  const now = performance.now();
+  const fps = +$("fps").value;
+  if (fps && now - lastFrameTs < 1000 / fps - 2) return;
+  if (video.currentTime === loop.lastVT) return;   // 新フレームのみ処理
+  loop.lastVT = video.currentTime;
+  lastFrameTs = now;
+
+  const s = performance.now();
+  const res = detector.detectForVideo(video, s);
+  const infer = performance.now() - s;
+  totalFrames++; win.frames++; win.inferSum += infer; win.inferMax = Math.max(win.inferMax, infer);
+
+  const th = +$("th").value;
+  const persons = res.detections.filter(d => d.categories[0].score >= th);
+
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  ctx.lineWidth = 3; ctx.strokeStyle = "#0f0"; ctx.fillStyle = "#0f0"; ctx.font = "16px sans-serif";
+  for (const d of persons) {
+    const b = d.boundingBox;
+    ctx.strokeRect(b.originX, b.originY, b.width, b.height);
+    ctx.fillText(`person ${(d.categories[0].score * 100) | 0}%`, b.originX + 4, b.originY + 18);
+  }
+
+  consec = persons.length ? consec + 1 : 0;
+  if (consec >= +$("nconf").value && now - lastDetectAt > +$("cool").value * 1000) {
+    lastDetectAt = now; notify();
+  }
+  if (totalFrames % 5 === 0) renderStats(infer);
+}
+
+function renderStats(lastInfer) {
+  const el = (performance.now() - t0) / 1000;
+  $("stats").textContent =
+`経過 ${(el / 60).toFixed(1)} 分   フレーム ${totalFrames}   通知 ${totalAlerts}
+推論 ${lastInfer.toFixed(1)} ms (直近)  平均 ${(win.inferSum / Math.max(win.frames, 1)).toFixed(1)} ms  最大 ${win.inferMax.toFixed(1)} ms
+実効fps(窓内) ${(win.frames / Math.max((performance.now() - win.start) / 1000, 1)).toFixed(1)}   映像 ${video.videoWidth}x${video.videoHeight}`;
+}
+
+function flushWindow(note = "") {
+  const sec = Math.max((performance.now() - win.start) / 1000, 1);
+  csvRows.push([((performance.now() - t0) / 60000).toFixed(1), (win.frames / sec).toFixed(1),
+    (win.inferSum / Math.max(win.frames, 1)).toFixed(1), win.inferMax.toFixed(1), win.alerts,
+    $("batt").value, note].join(","));
+  $("csv").value = csvRows.join("\n");
+  win = { frames: 0, inferSum: 0, inferMax: 0, alerts: 0, start: performance.now() };
+}
+
+async function lockScreen() {
+  try { wakeLock = await navigator.wakeLock.request("screen"); log("WakeLock取得"); }
+  catch (e) { log("WakeLock不可: " + e.message); }
+}
+document.addEventListener("visibilitychange", () => { if (running && document.visibilityState === "visible") lockScreen(); });
+
+$("start").onclick = async () => {
+  $("start").disabled = true;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();   // ユーザー操作内で生成
+    if (!detector) { log("モデル読込中..."); await init(); }
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+    video.srcObject = stream; await video.play();
+    await lockScreen();
+    running = true; t0 = performance.now(); win.start = t0; totalFrames = 0; totalAlerts = 0; consec = 0;
+    csvRows.length = 1; $("stop").disabled = false;
+    loop.timer = setInterval(() => flushWindow(), 60000);
+    requestAnimationFrame(loop);
+    log("検知開始");
+  } catch (e) { log("エラー: " + e.message); $("start").disabled = false; }
+};
+
+$("stop").onclick = () => {
+  running = false; clearInterval(loop.timer); flushWindow("stop");
+  stream?.getTracks().forEach(t => t.stop()); wakeLock?.release();
+  $("start").disabled = false; $("stop").disabled = true; log("停止");
+};
+
+$("mark").onclick = () => { if (running) flushWindow($("temp").value.replace(/,/g, " ")); else log("開始後に記録してください"); };
+$("copy").onclick = () => navigator.clipboard.writeText($("csv").value).then(() => log("CSVコピー済"));
+</script>
+</body>
+</html>
