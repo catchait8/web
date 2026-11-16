@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Webカメラ検知のカスタマイズ | CatchAIT</title>
+  <meta name="description" content="AIを加えることで、Webカメラの検知と通知が劇的に賢くなる。ペット・駐禁対策・勤怠記録のユースケース。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Noto Sans JP','Inter',sans-serif; color: #222; background: #fff; line-height: 1.8; }
+    a { text-decoration: none; color: inherit; }
+    svg { display: block; width: 100%; height: auto; }
+    h1, h2, h3 { line-break: strict; text-wrap: balance; }
+
+    :root {
+      --navy:#0f1b2d; --dark:#1a2a3a; --blue:#2563eb; --blue-l:#3b82f6;
+      --teal:#0ea5e9; --light:#f4f7fb; --gray:#6b7280; --border:#e5e7eb;
+      --alert:#f59e0b; --ok:#22c55e;
+    }
+
+    /* ── Header (index.html と共通) ── */
+    header { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(15,27,45,.92);
+      backdrop-filter:blur(8px); border-bottom:1px solid rgba(255,255,255,.06); padding:0 40px; height:64px;
+      display:flex; align-items:center; justify-content:space-between; }
+    .logo { font-size:1.5rem; font-weight:700; color:#fff; letter-spacing:.04em; }
+    .logo span { color:var(--teal); }
+    nav { display:flex; align-items:center; gap:14px; }
+    nav a.back { color:rgba(255,255,255,.8); font-size:.875rem; }
+    nav a.back:hover { color:#fff; }
+    .btn-cta { background:var(--teal); color:#fff; padding:8px 20px; border-radius:4px; font-weight:500; font-size:.875rem; transition:background .2s, transform .1s; }
+    .btn-cta:hover { background:var(--blue-l); transform:translateY(-1px); }
+
+    /* ── Hero ── */
+    .hero { position:relative; min-height:92vh; display:flex; align-items:center; overflow:hidden; background:var(--navy); color:#fff; padding:110px 24px 80px; }
+    .hero::before { content:''; position:absolute; inset:0;
+      background: radial-gradient(ellipse 60% 70% at 78% 45%, rgba(14,165,233,.22), transparent 70%),
+                  linear-gradient(135deg,#0f1b2d 0%,#0d2847 55%,#0f1b2d 100%); }
+    .hero-grid { position:relative; z-index:2; max-width:1120px; margin:0 auto; width:100%;
+      display:grid; grid-template-columns:1fr 1.05fr; gap:56px; align-items:center; }
+    .eyebrow { display:inline-block; font-size:.78rem; letter-spacing:.2em; color:var(--teal); text-transform:uppercase;
+      border:1px solid rgba(14,165,233,.4); padding:4px 14px; border-radius:20px; margin-bottom:22px; }
+    .hero h1 { font-size:clamp(1.8rem,3.9vw,3.1rem); line-height:1.35; font-weight:700; letter-spacing:.01em; }
+    .hero h1 em { font-style:normal; color:var(--teal); }
+    .hero p.lead { margin-top:22px; color:rgba(255,255,255,.72); font-size:1.02rem; max-width:30em; }
+    .hero-actions { margin-top:34px; display:flex; gap:14px; flex-wrap:wrap; }
+    .btn-primary { background:var(--teal); color:#fff; padding:14px 30px; border-radius:4px; font-weight:500; transition:background .2s; }
+    .btn-primary:hover { background:var(--blue-l); }
+    .btn-ghost { border:1px solid rgba(255,255,255,.35); color:#fff; padding:14px 30px; border-radius:4px; }
+    .btn-ghost:hover { border-color:#fff; }
+
+    /* ── Camera frame (共通) ── */
+    .cam { position:relative; border-radius:10px; overflow:hidden; background:#000;
+      box-shadow:0 30px 60px -20px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); }
+    .cam-bar { position:absolute; top:0; left:0; right:0; z-index:3; display:flex; justify-content:space-between;
+      padding:10px 14px; font:500 .7rem/1 'Inter',monospace; letter-spacing:.08em; color:rgba(255,255,255,.85);
+      background:linear-gradient(rgba(0,0,0,.55),transparent); }
+    .rec { display:inline-flex; align-items:center; gap:6px; }
+    .rec::before { content:''; width:7px; height:7px; border-radius:50%; background:#ef4444; animation:blink 1.4s infinite; }
+    @keyframes blink { 50% { opacity:.25; } }
+    .scan { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,rgba(14,165,233,.9),transparent);
+      top:0; animation:scan 4.5s linear infinite; z-index:2; opacity:.6; }
+    @keyframes scan { from{ top:0 } to{ top:100% } }
+    .bbox { animation:pulse 2.4s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity:.65; } }
+
+    /* ── 通知カード ── */
+    .notice { position:absolute; z-index:4; right:14px; top:40px; width:min(58%,250px);
+      background:rgba(255,255,255,.96); color:#111; border-radius:14px; padding:12px 14px;
+      box-shadow:0 14px 30px rgba(0,0,0,.35); font-size:.78rem; line-height:1.5;
+      transform:translateY(-14px); opacity:0; transition:transform .7s .5s, opacity .7s .5s; }
+    .in .notice { transform:none; opacity:1; }
+    .notice .top { display:flex; justify-content:space-between; color:var(--gray); font-size:.68rem; margin-bottom:3px; }
+    .notice b { display:block; font-size:.82rem; }
+    .notice.warn b { color:#b45309; }
+
+    /* ── 比較 ── */
+    .compare { padding:96px 24px; background:#fff; }
+    .compare-inner { max-width:1120px; margin:0 auto; }
+    .compare h2 { text-align:center; font-size:clamp(1.4rem,3vw,1.9rem); margin-bottom:12px; }
+    .compare .sub { text-align:center; color:var(--gray); margin-bottom:48px; }
+    .cmp-grid { display:grid; grid-template-columns:1fr 1.25fr; gap:24px; align-items:stretch; }
+    .cmp { border-radius:12px; padding:32px 30px; }
+    .cmp .tag { display:inline-block; font:500 .72rem 'Inter','Noto Sans JP',sans-serif; letter-spacing:.14em; padding:3px 12px; border-radius:999px; margin-bottom:14px; }
+    .cmp h3 { font-size:1.15rem; line-height:1.5; margin-bottom:16px; }
+    .cmp ul { list-style:none; display:grid; gap:10px; font-size:.92rem; }
+    .cmp li { position:relative; padding-left:22px; }
+    .cmp li::before { position:absolute; left:0; top:0; }
+    .cmp.old { background:var(--light); color:#4b5563; border:1px solid var(--border); }
+    .cmp.old .tag { background:#e5e7eb; color:#4b5563; }
+    .cmp.old li::before { content:'–'; color:#9ca3af; }
+    .cmp.new { background:var(--navy); color:#fff; box-shadow:0 24px 50px -24px rgba(14,165,233,.5); position:relative; overflow:hidden; }
+    .cmp.new::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 70% 60% at 100% 0%, rgba(14,165,233,.22), transparent 70%); pointer-events:none; }
+    .cmp.new > * { position:relative; }
+    .cmp.new .tag { background:var(--teal); color:#fff; }
+    .cmp.new li::before { content:'✓'; color:var(--teal); font-weight:700; }
+    .flowline { margin-top:24px; display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:8px; align-items:stretch; }
+    .flowline .node { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); border-radius:8px; padding:10px 12px; font-size:.78rem; line-height:1.5; }
+    .flowline .node b { display:block; color:var(--teal); font:500 .66rem 'Inter',sans-serif; letter-spacing:.12em; margin-bottom:2px; }
+    .flowline .arr { align-self:center; color:var(--teal); }
+    .cmp .eg { margin-top:18px; font-size:.84rem; padding:12px 14px; border-left:3px solid var(--teal); background:rgba(14,165,233,.12); color:rgba(255,255,255,.9); }
+    .cmp .eg small { display:block; font-size:.66rem; letter-spacing:.14em; color:var(--teal); text-transform:uppercase; margin-bottom:2px; }
+
+    /* ── Section ── */
+    section.case { padding:104px 24px; }
+    section.case.alt { background:var(--light); }
+    section.case.night { background:var(--navy); color:#fff; }
+    .case-inner { max-width:1120px; margin:0 auto; display:grid; grid-template-columns:1fr 1.1fr; gap:64px; align-items:center; }
+    .case.rev .case-inner > .txt { order:2; }
+    .num { font:300 4.4rem/1 'Inter',sans-serif; color:var(--teal); opacity:.9; letter-spacing:-.02em; }
+    .case h2 { font-size:clamp(1.5rem,3vw,2.1rem); line-height:1.45; margin:6px 0 16px; font-weight:700; }
+    .case p { color:var(--gray); max-width:28em; }
+    .night p { color:rgba(255,255,255,.7); }
+    .chips { margin-top:22px; display:flex; flex-wrap:wrap; gap:8px; }
+    .chips span { font-size:.78rem; border:1px solid var(--border); border-radius:999px; padding:4px 14px; color:#374151; background:#fff; }
+    .night .chips span { background:transparent; color:rgba(255,255,255,.8); border-color:rgba(255,255,255,.22); }
+    .prompt { margin-top:22px; font:400 .86rem/1.7 'Noto Sans JP',sans-serif; padding:12px 16px; border-left:3px solid var(--teal);
+      background:rgba(14,165,233,.07); color:#1f2937; max-width:30em; }
+    .night .prompt { color:rgba(255,255,255,.85); background:rgba(14,165,233,.12); }
+    .prompt small { display:block; font-size:.68rem; letter-spacing:.14em; color:var(--teal); text-transform:uppercase; margin-bottom:2px; }
+
+    /* 勤怠ログ */
+    .log { position:absolute; z-index:4; left:14px; bottom:14px; width:min(52%,210px); background:rgba(15,27,45,.88);
+      border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:8px 10px; font:500 .68rem/1.9 'Inter',monospace; color:rgba(255,255,255,.85); }
+    .log i { font-style:normal; color:var(--ok); }
+
+    /* ── しくみ ── */
+    .flow { padding:96px 24px; background:#fff; }
+    .flow-inner { max-width:1120px; margin:0 auto; }
+    .flow h2 { text-align:center; font-size:clamp(1.4rem,3vw,1.9rem); margin-bottom:56px; }
+    .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:0; position:relative; }
+    .steps::before { content:''; position:absolute; top:28px; left:16%; right:16%; height:1px; background:var(--border); }
+    .step { text-align:center; padding:0 20px; position:relative; }
+    .step .dot { width:56px; height:56px; margin:0 auto 18px; border-radius:50%; background:var(--navy); color:var(--teal);
+      display:grid; place-items:center; font:500 1.1rem 'Inter',sans-serif; box-shadow:0 0 0 8px #fff; position:relative; }
+    .step h3 { font-size:1.02rem; margin-bottom:6px; }
+    .step p { font-size:.88rem; color:var(--gray); }
+
+    /* ── CTA ── */
+    .cta { background:var(--navy); color:#fff; text-align:center; padding:96px 24px; }
+    .cta h2 { font-size:clamp(1.4rem,3vw,1.9rem); margin-bottom:14px; }
+    .cta p { color:rgba(255,255,255,.7); margin-bottom:30px; }
+    .note { margin-top:36px; font-size:.74rem; color:rgba(255,255,255,.45); }
+
+    footer { background:#0a121f; color:rgba(255,255,255,.55); text-align:center; padding:28px 24px; font-size:.8rem; }
+    footer a { text-decoration:underline; }
+
+    /* ── scroll reveal ── */
+    .rv { opacity:0; transform:translateY(24px); transition:opacity .8s, transform .8s; }
+    .in .rv, .rv.in { opacity:1; transform:none; }
+    @media (prefers-reduced-motion: reduce) {
+      .rv, .notice { opacity:1 !important; transform:none !important; transition:none !important; }
+      .scan, .bbox, .rec::before { animation:none !important; }
+    }
+
+    @media (max-width:900px) {
+      header { padding:0 16px; }
+      .hero-grid, .case-inner { grid-template-columns:1fr; gap:40px; }
+      .case.rev .case-inner > .txt { order:0; }
+      section.case { padding:72px 20px; }
+      .steps { grid-template-columns:1fr; gap:36px; }
+      .cmp-grid { grid-template-columns:1fr; }
+      .compare { padding:72px 20px; }
+      .flowline { grid-template-columns:1fr; }
+      .flowline .arr { transform:rotate(90deg); justify-self:center; }
+      .steps::before { display:none; }
+      nav a.back { display:none; }
+    }
+    @media (max-width:600px) {
+      .notice { top:34px; right:8px; width:60%; padding:7px 9px; border-radius:10px; font-size:.66rem; }
+      .notice b { font-size:.72rem; }
+      .notice .top { font-size:.6rem; }
+      .cam-bar { font-size:.6rem; padding:8px 10px; }
+      .log { left:8px; bottom:8px; font-size:.58rem; padding:5px 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="logo">Catch<span>AIT</span></a>
+  <nav>
+    <a class="back" href="index.html#goal">ソリューション例</a>
+    <a class="btn-cta" href="hearing_form.html" target="_blank">いますぐ無料相談</a>
+  </nav>
+</header>
+
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <div class="hero-grid">
+    <div>
+      <span class="eyebrow">Use Case</span>
+      <h1>Webカメラの検知を、<br /><em>言葉で</em>カスタマイズ。</h1>
+      <p class="lead">AIを加えるだけで、検知と通知は劇的に賢くなります。「動いた」ではなく「何が起きたか」を知らせます。</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#case1">事例を見る</a>
+        <a class="btn-ghost" href="hearing_form.html" target="_blank">相談する</a>
+      </div>
+    </div>
+
+    <!-- キービジュアル: 検知オーバーレイ -->
+    <div class="cam in" aria-hidden="true">
+      <div class="cam-bar"><span class="rec">REC · CAM 01</span><span>AI DETECT ON</span></div>
+      <div class="scan"></div>
+      <svg viewBox="0 0 640 400" role="img" aria-label="">
+        <defs>
+          <linearGradient id="hwall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2b40"/><stop offset="1" stop-color="#0e1826"/></linearGradient>
+          <radialGradient id="hlamp" cx=".8" cy=".15" r=".6"><stop offset="0" stop-color="#ffd9a0" stop-opacity=".35"/><stop offset="1" stop-color="#ffd9a0" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect width="640" height="400" fill="url(#hwall)"/>
+        <rect width="640" height="400" fill="url(#hlamp)"/>
+        <rect y="300" width="640" height="100" fill="#0b121c"/>
+        <!-- 窓 -->
+        <rect x="60" y="60" width="150" height="130" rx="3" fill="#24405f"/>
+        <path d="M135 60v130M60 125h150" stroke="#0e1826" stroke-width="5"/>
+        <!-- 人物 -->
+        <g class="bbox">
+          <circle cx="420" cy="170" r="30" fill="#2c3f58"/>
+          <path d="M360 330c0-60 25-100 60-100s60 40 60 100z" fill="#2c3f58"/>
+          <path d="M340 150v-14h22M500 150v-14h-22M340 344v14h22M500 344v14h-22" fill="none" stroke="#0ea5e9" stroke-width="3"/>
+        </g>
+        <!-- 犬 -->
+        <g class="bbox" style="animation-delay:.8s">
+          <ellipse cx="190" cy="318" rx="52" ry="26" fill="#3a4c64"/>
+          <circle cx="150" cy="296" r="19" fill="#3a4c64"/>
+          <path d="M139 282l-8-20 18 10zM161 281l10-19 6 20z" fill="#3a4c64"/>
+          <path d="M238 310c20-10 30-30 22-46" fill="none" stroke="#3a4c64" stroke-width="9" stroke-linecap="round"/>
+          <path d="M112 270v-14h20M262 270v-14h-20M112 350v14h20M262 350v14h-20" fill="none" stroke="#38bdf8" stroke-width="3"/>
+        </g>
+        <g font-family="Inter,monospace" font-size="12" fill="#fff">
+          <rect x="340" y="118" width="108" height="20" fill="#0ea5e9"/><text x="347" y="132">person 0.97</text>
+          <rect x="112" y="238" width="86" height="20" fill="#38bdf8"/><text x="119" y="252" fill="#0f1b2d">dog 0.94</text>
+        </g>
+      </svg>
+      <div class="notice"><div class="top"><span>CatchAIT</span><span>いま</span></div><b>犬がソファに上がりました</b>リビング · 14:32</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ 比較: これまで vs AI ════ -->
+<section class="compare">
+  <div class="compare-inner">
+    <h2 class="rv">検知して、知らせるだけで終わらない。</h2>
+    <p class="sub rv">AIは、意図を理解して、動きまで起こします。</p>
+    <div class="cmp-grid">
+      <div class="cmp old rv">
+        <span class="tag">これまで</span>
+        <h3>決まった動きを検知して、<br />決まった通知を送るだけ</h3>
+        <ul>
+          <li>検知できるのは、物体など特定のアクションのみ</li>
+          <li>通知は定型で、状況は読み取れない</li>
+          <li>受け取るだけの一方通行</li>
+        </ul>
+      </div>
+      <div class="cmp new rv">
+        <span class="tag">AIを使った検知</span>
+        <h3>知りたいことを言葉で伝え、<br />通知も操作も任せられる</h3>
+        <ul>
+          <li>通知してほしい行動を、文章で具体的に指定できる</li>
+          <li>通知を受け取るだけでなく、機器へ指示を返せる(双方向)</li>
+          <li>スピーカーからの声かけ、エアコンの起動など、複数の操作を組み合わせて実行できる</li>
+        </ul>
+        <div class="flowline" aria-hidden="true">
+          <div class="node"><b>DETECT</b>状況を理解して検知</div><span class="arr">→</span>
+          <div class="node"><b>JUDGE</b>言葉の条件で判断</div><span class="arr">→</span>
+          <div class="node"><b>ACT</b>通知・音声・機器操作</div>
+        </div>
+        <div class="eg"><small>Example</small>「猫がソファに上がったら、スピーカーで声をかけて。室温が高ければ、エアコンも入れて」</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CASE 1: ペット ════ -->
+<section class="case alt" id="case1">
+  <div class="case-inner">
+    <div class="txt rv">
+      <div class="num">01</div>
+      <h2>ペットの気になる動きを、<br />すぐ知らせる。</h2>
+      <p>通知したい場面を、ふだんの言葉で書くだけ。動画ではなく、状況の説明つきで届きます。</p>
+      <div class="prompt"><small>Your words</small>「ごはんを残している」「ソファに上がった」「同じ場所を長時間うろうろしている」</div>
+      <div class="chips"><span>留守中の見守り</span><span>いたずら防止</span><span>体調の変化に気づく</span></div>
+    </div>
+    <div class="cam rv" aria-hidden="true">
+      <div class="cam-bar"><span class="rec">LIVING · 14:32:08</span><span>PET WATCH</span></div>
+      <div class="scan"></div>
+      <svg viewBox="0 0 640 400" role="img" aria-label="">
+        <defs>
+          <linearGradient id="pwall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9cdb8"/><stop offset="1" stop-color="#c5b79e"/></linearGradient>
+        </defs>
+        <rect width="640" height="400" fill="url(#pwall)"/>
+        <rect y="305" width="640" height="95" fill="#8a7a62"/>
+        <!-- 窓の光 -->
+        <rect x="430" y="50" width="150" height="150" fill="#f4ecd8"/>
+        <path d="M505 50v150M430 125h150" stroke="#c5b79e" stroke-width="5"/>
+        <!-- ソファ -->
+        <rect x="70" y="205" width="360" height="110" rx="22" fill="#5b6b7d"/>
+        <rect x="52" y="235" width="46" height="95" rx="18" fill="#4a5968"/>
+        <rect x="402" y="235" width="46" height="95" rx="18" fill="#4a5968"/>
+        <rect x="110" y="230" width="280" height="64" rx="12" fill="#6b7c8f"/>
+        <!-- 猫 -->
+        <g class="bbox">
+          <ellipse cx="270" cy="228" rx="52" ry="26" fill="#2f2a28"/>
+          <circle cx="222" cy="208" r="20" fill="#2f2a28"/>
+          <path d="M209 194l-5-20 17 10zM232 192l12-18 3 22z" fill="#2f2a28"/>
+          <path d="M320 232c26 6 40-8 36-30" fill="none" stroke="#2f2a28" stroke-width="9" stroke-linecap="round"/>
+          <path d="M182 170v-14h22M362 170v-14h-22M182 262v14h22M362 262v14h-22" fill="none" stroke="#0ea5e9" stroke-width="3"/>
+          <rect x="182" y="132" width="168" height="20" fill="#0ea5e9"/>
+          <text x="190" y="146" font-family="Inter,monospace" font-size="12" fill="#fff">cat · on sofa 0.94</text>
+        </g>
+        <!-- 立入禁止エリア -->
+        <rect x="70" y="205" width="360" height="110" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="8 6"/>
+      </svg>
+      <div class="notice"><div class="top"><span>CatchAIT</span><span>14:32</span></div><b>猫がソファに上がりました</b>設定したエリアに5秒以上滞在</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CASE 2: 駐禁対策 ════ -->
+<section class="case night rev" id="case2">
+  <div class="case-inner">
+    <div class="txt rv">
+      <div class="num">02</div>
+      <h2>お客様を、<br />不要な違反金から守る。</h2>
+      <p>駐車禁止エリアの停車を検知し、時間を超える前に担当者へ。違反になる前に動けます。</p>
+      <div class="prompt"><small>Your words</small>「入口前に10分以上止まっている車があれば知らせて」</div>
+      <div class="chips"><span>店舗・月極駐車場</span><span>荷捌きスペース</span><span>警告まで残り時間を表示</span></div>
+    </div>
+    <div class="cam rv" aria-hidden="true">
+      <div class="cam-bar"><span class="rec">ENTRANCE · 16:05:41</span><span>NO PARKING ZONE</span></div>
+      <div class="scan"></div>
+      <svg viewBox="0 0 640 400" role="img" aria-label="">
+        <defs>
+          <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="14" height="14" fill="none"/><rect width="5" height="14" fill="#f59e0b" opacity=".55"/>
+          </pattern>
+          <linearGradient id="road" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2531"/><stop offset="1" stop-color="#10161f"/></linearGradient>
+        </defs>
+        <rect width="640" height="400" fill="url(#road)"/>
+        <!-- 歩道 -->
+        <path d="M0 0h640v110H0z" fill="#27323f"/><path d="M0 110h640" stroke="#3d4b5b" stroke-width="4"/>
+        <!-- 中央線 -->
+        <path d="M0 330h640" stroke="#e5e7eb" stroke-width="3" stroke-dasharray="46 30" opacity=".5"/>
+        <!-- 禁止ゾーン -->
+        <rect x="120" y="150" width="400" height="140" fill="url(#hatch)"/>
+        <rect x="120" y="150" width="400" height="140" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+        <!-- 車(俯瞰) -->
+        <g class="bbox">
+          <rect x="210" y="178" width="220" height="84" rx="26" fill="#cfd6df"/>
+          <rect x="262" y="190" width="116" height="60" rx="14" fill="#5a6b7e"/>
+          <rect x="226" y="186" width="22" height="10" rx="3" fill="#fde68a"/><rect x="226" y="244" width="22" height="10" rx="3" fill="#fde68a"/>
+          <path d="M190 164v-16h24M450 164v-16h-24M190 276v16h24M450 276v16h-24" fill="none" stroke="#f59e0b" stroke-width="3"/>
+          <rect x="190" y="126" width="148" height="20" fill="#f59e0b"/>
+          <text x="198" y="140" font-family="Inter,monospace" font-size="12" fill="#0f1b2d">car · stopped 12:40</text>
+        </g>
+        <!-- タイマーバー -->
+        <rect x="120" y="340" width="400" height="10" rx="5" fill="#2b3746"/>
+        <rect x="120" y="340" width="326" height="10" rx="5" fill="#f59e0b"/>
+        <text x="120" y="334" font-family="Inter,monospace" font-size="12" fill="#cbd5e1">警告まで あと 02:20</text>
+      </svg>
+      <div class="notice warn"><div class="top"><span>CatchAIT</span><span>16:05</span></div><b>入口前に停車して12分です</b>あと2分で警告ラインを超えます</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CASE 3: 勤怠 ════ -->
+<section class="case alt" id="case3">
+  <div class="case-inner">
+    <div class="txt rv">
+      <div class="num">03</div>
+      <h2>顔を認証して、<br />勤怠を自動で記録。</h2>
+      <p>出入口を通るだけで、出退勤が残ります。打刻や転記の手作業はなくなります。</p>
+      <div class="prompt"><small>Your words</small>「登録した人が入ったら出勤、出たら退勤として記録して」</div>
+      <div class="chips"><span>事前登録・同意が前提</span><span>CSV/表計算へ出力</span><span>打刻忘れの防止</span></div>
+    </div>
+    <div class="cam rv" aria-hidden="true">
+      <div class="cam-bar"><span class="rec">ENTRANCE · 08:57:12</span><span>ATTENDANCE</span></div>
+      <div class="scan"></div>
+      <svg viewBox="0 0 640 400" role="img" aria-label="">
+        <defs>
+          <linearGradient id="awall" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e8e4dc"/><stop offset="1" stop-color="#d4cec2"/></linearGradient>
+          <linearGradient id="door" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fb3c4"/><stop offset="1" stop-color="#7d93a6"/></linearGradient>
+        </defs>
+        <rect width="640" height="400" fill="url(#awall)"/>
+        <rect y="330" width="640" height="70" fill="#a39b8c"/>
+        <!-- ドア -->
+        <rect x="360" y="40" width="200" height="290" rx="3" fill="url(#door)" stroke="#6b7c8c" stroke-width="6"/>
+        <rect x="380" y="60" width="160" height="110" fill="#c8d6e2" opacity=".6"/>
+        <circle cx="370" cy="200" r="0"/><rect x="520" y="190" width="10" height="38" rx="5" fill="#4a5968"/>
+        <!-- 人物 -->
+        <g>
+          <circle cx="210" cy="140" r="38" fill="#3a3f4a"/>
+          <path d="M120 340c0-80 40-130 90-130s90 50 90 130z" fill="#2c3f58"/>
+          <!-- 顔認証ブラケット -->
+          <g class="bbox">
+            <path d="M160 100v-20h20M260 100v-20h-20M160 180v20h20M260 180v20h-20" fill="none" stroke="#22c55e" stroke-width="3.5"/>
+            <rect x="150" y="52" width="120" height="20" fill="#22c55e"/>
+            <text x="157" y="66" font-family="Inter,monospace" font-size="12" fill="#04210f">ID 023 verified</text>
+          </g>
+        </g>
+      </svg>
+      <div class="log"><div>08:57 <i>IN</i> &nbsp;Staff 023</div><div>08:52 <i>IN</i> &nbsp;Staff 011</div><div>08:49 <i>IN</i> &nbsp;Staff 007</div></div>
+      <div class="notice"><div class="top"><span>CatchAIT</span><span>08:57</span></div><b>出勤を記録しました</b>Staff 023 · 08:57</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ しくみ ════ -->
+<section class="flow">
+  <div class="flow-inner">
+    <h2 class="rv">はじめ方は、3ステップ</h2>
+    <div class="steps">
+      <div class="step rv"><div class="dot">1</div><h3>カメラをつなぐ</h3><p>お手持ちのWebカメラやネットワークカメラで始められます。</p></div>
+      <div class="step rv"><div class="dot">2</div><h3>知りたいことを書く</h3><p>通知したい状況を、ふだんの言葉で入力します。</p></div>
+      <div class="step rv"><div class="dot">3</div><h3>スマホに届く</h3><p>状況の説明つきで、チャットやメールに通知します。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CTA ════ -->
+<section class="cta">
+  <h2>あなたの現場に合わせて、つくります。</h2>
+  <p>まずは「何を知りたいか」をお聞かせください。</p>
+  <a class="btn-primary" href="hearing_form.html" target="_blank">いますぐ無料相談</a>
+  <p class="note">顔認証は、事前の同意と利用目的の明示を前提とします。映像の保存範囲・期間はご要望に合わせて設計します。</p>
+</section>
+
+<footer>
+  &copy; 2024 CatchAIT / Catch8. ｜ <a href="index.html">ホームへ戻る</a> ｜ <a href="tokutei.html">特定商取引法に基づく表示</a>
+</footer>
+
+<script>
+  (function () {
+    const els = document.querySelectorAll('.rv');
+    if (!('IntersectionObserver' in window)) { els.forEach(e => e.classList.add('in')); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { threshold: 0.18 });
+    els.forEach(e => io.observe(e));
+  })();
+</script>
+</body>
+</html>
