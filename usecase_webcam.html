@@ -2,445 +2,896 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Webカメラ検知のカスタマイズ | CatchAIT</title>
-  <meta name="description" content="AIを加えることで、Webカメラの検知と通知が劇的に賢くなる。ペット・駐禁対策・勤怠記録のユースケース。" />
+  <meta name="description" content="AIを加えることで、Webカメラの検知と通知が劇的に賢くなる。ペット・駐禁対策・勤怠・店舗防犯・家族見守りのユースケース。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body { font-family: 'Noto Sans JP','Inter',sans-serif; color: #222; background: #fff; line-height: 1.8; }
-    a { text-decoration: none; color: inherit; }
-    svg { display: block; width: 100%; height: auto; }
-    h1, h2, h3 { line-break: strict; text-wrap: balance; }
-
     :root {
-      --navy:#0f1b2d; --dark:#1a2a3a; --blue:#2563eb; --blue-l:#3b82f6;
-      --teal:#0ea5e9; --light:#f4f7fb; --gray:#6b7280; --border:#e5e7eb;
-      --alert:#f59e0b; --ok:#22c55e;
+      --navy: #0f1b2d;
+      --deep: #070d18;
+      --surface: #132238;
+      --blue: #2563eb;
+      --teal: #0ea5e9;
+      --ok: #22c55e;
+      --alert: #f59e0b;
+      --light: #f4f7fb;
+      --gray: #64748b;
+      --border: rgba(255, 255, 255, 0.1);
+      --font-sans: 'Noto Sans JP', 'Inter', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --header-h: 56px;
     }
 
-    /* ── Header (index.html と共通) ── */
-    header { position:fixed; top:0; left:0; right:0; z-index:100; background:rgba(15,27,45,.92);
-      backdrop-filter:blur(8px); border-bottom:1px solid rgba(255,255,255,.06); padding:0 40px; height:64px;
-      display:flex; align-items:center; justify-content:space-between; }
-    .logo { font-size:1.5rem; font-weight:700; color:#fff; letter-spacing:.04em; }
-    .logo span { color:var(--teal); }
-    nav { display:flex; align-items:center; gap:14px; }
-    nav a.back { color:rgba(255,255,255,.8); font-size:.875rem; }
-    nav a.back:hover { color:#fff; }
-    .btn-cta { background:var(--teal); color:#fff; padding:8px 20px; border-radius:4px; font-weight:500; font-size:.875rem; transition:background .2s, transform .1s; }
-    .btn-cta:hover { background:var(--blue-l); transform:translateY(-1px); }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font-sans);
+      background: var(--deep);
+      color: #f1f5f9;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; }
 
-    /* ── Hero ── */
-    .hero { position:relative; min-height:92vh; display:flex; align-items:center; overflow:hidden; background:var(--navy); color:#fff; padding:110px 24px 80px; }
-    .hero::before { content:''; position:absolute; inset:0;
-      background: radial-gradient(ellipse 60% 70% at 78% 45%, rgba(14,165,233,.22), transparent 70%),
-                  linear-gradient(135deg,#0f1b2d 0%,#0d2847 55%,#0f1b2d 100%); }
-    .hero-grid { position:relative; z-index:2; max-width:1120px; margin:0 auto; width:100%;
-      display:grid; grid-template-columns:1fr 1.05fr; gap:56px; align-items:center; }
-    .eyebrow { display:inline-block; font-size:.78rem; letter-spacing:.2em; color:var(--teal); text-transform:uppercase;
-      border:1px solid rgba(14,165,233,.4); padding:4px 14px; border-radius:20px; margin-bottom:22px; }
-    .hero h1 { font-size:clamp(1.8rem,3.9vw,3.1rem); line-height:1.35; font-weight:700; letter-spacing:.01em; }
-    .hero h1 em { font-style:normal; color:var(--teal); }
-    .hero p.lead { margin-top:22px; color:rgba(255,255,255,.72); font-size:1.02rem; max-width:30em; }
-    .hero-actions { margin-top:34px; display:flex; gap:14px; flex-wrap:wrap; }
-    .btn-primary { background:var(--teal); color:#fff; padding:14px 30px; border-radius:4px; font-weight:500; transition:background .2s; }
-    .btn-primary:hover { background:var(--blue-l); }
-    .btn-ghost { border:1px solid rgba(255,255,255,.35); color:#fff; padding:14px 30px; border-radius:4px; }
-    .btn-ghost:hover { border-color:#fff; }
+    /* ── Compact Fixed Header (スマホ横1画面最適化) ── */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-h);
+      z-index: 100;
+      background: rgba(7, 13, 24, 0.88);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo { font-size: 1.15rem; font-weight: 700; color: #fff; letter-spacing: 0.04em; }
+    .logo span { color: var(--teal); }
+    nav { display: flex; align-items: center; gap: 10px; }
+    .nav-pill {
+      font-size: 0.72rem;
+      color: #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      white-space: nowrap;
+    }
+    .nav-pill:hover { border-color: var(--teal); color: #fff; }
+    .btn-cta {
+      background: var(--teal);
+      color: #fff;
+      padding: 5px 12px;
+      border-radius: 5px;
+      font-weight: 600;
+      font-size: 0.74rem;
+      white-space: nowrap;
+    }
+    .btn-cta:hover { background: var(--blue); }
 
-    /* ── Camera frame (共通) ── */
-    .cam { position:relative; border-radius:10px; overflow:hidden; background:#000;
-      box-shadow:0 30px 60px -20px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.08); }
-    .cam-bar { position:absolute; top:0; left:0; right:0; z-index:3; display:flex; justify-content:space-between;
-      padding:10px 14px; font:500 .7rem/1 'Inter',monospace; letter-spacing:.08em; color:rgba(255,255,255,.85);
-      background:linear-gradient(rgba(0,0,0,.55),transparent); }
-    .rec { display:inline-flex; align-items:center; gap:6px; }
-    .rec::before { content:''; width:7px; height:7px; border-radius:50%; background:#ef4444; animation:blink 1.4s infinite; }
-    @keyframes blink { 50% { opacity:.25; } }
-    .scan { position:absolute; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,rgba(14,165,233,.9),transparent);
-      top:0; animation:scan 4.5s linear infinite; z-index:2; opacity:.6; }
-    @keyframes scan { from{ top:0 } to{ top:100% } }
-    .bbox { animation:pulse 2.4s ease-in-out infinite; }
-    @keyframes pulse { 50% { opacity:.65; } }
+    .hamburger {
+      width: 34px; height: 34px;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      position: relative;
+    }
+    .hamburger span {
+      position: absolute; left: 50%; top: 50%;
+      width: 16px; height: 1.5px; background: #fff;
+      transform: translate(-50%, -50%); transition: 0.2s;
+    }
+    .hamburger span:nth-child(1) { transform: translate(-50%, calc(-50% - 5px)); }
+    .hamburger span:nth-child(3) { transform: translate(-50%, calc(-50% + 5px)); }
+    .hamburger.open span:nth-child(1) { transform: translate(-50%, -50%) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translate(-50%, -50%) rotate(-45deg); }
 
-    /* ── 通知カード ── */
-    .notice { position:absolute; z-index:4; right:14px; top:40px; width:min(58%,250px);
-      background:rgba(255,255,255,.96); color:#111; border-radius:14px; padding:12px 14px;
-      box-shadow:0 14px 30px rgba(0,0,0,.35); font-size:.78rem; line-height:1.5;
-      transform:translateY(-14px); opacity:0; transition:transform .7s .5s, opacity .7s .5s; }
-    .in .notice { transform:none; opacity:1; }
-    .notice .top { display:flex; justify-content:space-between; color:var(--gray); font-size:.68rem; margin-bottom:3px; }
-    .notice b { display:block; font-size:.82rem; }
-    .notice.warn b { color:#b45309; }
+    .mobile-drawer {
+      position: fixed; top: var(--header-h); left: 0; right: 0;
+      background: rgba(10, 17, 30, 0.98);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 20px 14px;
+      display: flex; flex-direction: column;
+      transform: translateY(-120%); opacity: 0;
+      transition: transform 0.25s, opacity 0.2s;
+      z-index: 99; pointer-events: none;
+    }
+    .mobile-drawer.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .mobile-drawer a {
+      padding: 10px 6px; font-size: 0.85rem; color: #e2e8f0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .mobile-drawer a:last-child { border-bottom: none; }
+    .mobile-drawer a.active { color: var(--teal); font-weight: 600; }
 
-    /* ── 比較 ── */
-    .compare { padding:96px 24px; background:#fff; }
-    .compare-inner { max-width:1120px; margin:0 auto; }
-    .compare h2 { text-align:center; font-size:clamp(1.4rem,3vw,1.9rem); margin-bottom:12px; }
-    .compare .sub { text-align:center; color:var(--gray); margin-bottom:48px; }
-    .cmp-grid { display:grid; grid-template-columns:1fr 1.25fr; gap:24px; align-items:stretch; }
-    .cmp { border-radius:12px; padding:32px 30px; }
-    .cmp .tag { display:inline-block; font:500 .72rem 'Inter','Noto Sans JP',sans-serif; letter-spacing:.14em; padding:3px 12px; border-radius:999px; margin-bottom:14px; }
-    .cmp h3 { font-size:1.15rem; line-height:1.5; margin-bottom:16px; }
-    .cmp ul { list-style:none; display:grid; gap:10px; font-size:.92rem; }
-    .cmp li { position:relative; padding-left:22px; }
-    .cmp li::before { position:absolute; left:0; top:0; }
-    .cmp.old { background:var(--light); color:#4b5563; border:1px solid var(--border); }
-    .cmp.old .tag { background:#e5e7eb; color:#4b5563; }
-    .cmp.old li::before { content:'–'; color:#9ca3af; }
-    .cmp.new { background:var(--navy); color:#fff; box-shadow:0 24px 50px -24px rgba(14,165,233,.5); position:relative; overflow:hidden; }
-    .cmp.new::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 70% 60% at 100% 0%, rgba(14,165,233,.22), transparent 70%); pointer-events:none; }
-    .cmp.new > * { position:relative; }
-    .cmp.new .tag { background:var(--teal); color:#fff; }
-    .cmp.new li::before { content:'✓'; color:var(--teal); font-weight:700; }
-    .flowline { margin-top:24px; display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:8px; align-items:stretch; }
-    .flowline .node { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); border-radius:8px; padding:10px 12px; font-size:.78rem; line-height:1.5; }
-    .flowline .node b { display:block; color:var(--teal); font:500 .66rem 'Inter',sans-serif; letter-spacing:.12em; margin-bottom:2px; }
-    .flowline .arr { align-self:center; color:var(--teal); }
-    .cmp .eg { margin-top:18px; font-size:.84rem; padding:12px 14px; border-left:3px solid var(--teal); background:rgba(14,165,233,.12); color:rgba(255,255,255,.9); }
-    .cmp .eg small { display:block; font-size:.66rem; letter-spacing:.14em; color:var(--teal); text-transform:uppercase; margin-bottom:2px; }
-
-    /* ── Section ── */
-    section.case { padding:104px 24px; }
-    section.case.alt { background:var(--light); }
-    section.case.night { background:var(--navy); color:#fff; }
-    .case-inner { max-width:1120px; margin:0 auto; display:grid; grid-template-columns:1fr 1.1fr; gap:64px; align-items:center; }
-    .case.rev .case-inner > .txt { order:2; }
-    .num { font:300 4.4rem/1 'Inter',sans-serif; color:var(--teal); opacity:.9; letter-spacing:-.02em; }
-    .case h2 { font-size:clamp(1.5rem,3vw,2.1rem); line-height:1.45; margin:6px 0 16px; font-weight:700; }
-    .case p { color:var(--gray); max-width:28em; }
-    .night p { color:rgba(255,255,255,.7); }
-    .chips { margin-top:22px; display:flex; flex-wrap:wrap; gap:8px; }
-    .chips span { font-size:.78rem; border:1px solid var(--border); border-radius:999px; padding:4px 14px; color:#374151; background:#fff; }
-    .night .chips span { background:transparent; color:rgba(255,255,255,.8); border-color:rgba(255,255,255,.22); }
-    .prompt { margin-top:22px; font:400 .86rem/1.7 'Noto Sans JP',sans-serif; padding:12px 16px; border-left:3px solid var(--teal);
-      background:rgba(14,165,233,.07); color:#1f2937; max-width:30em; }
-    .night .prompt { color:rgba(255,255,255,.85); background:rgba(14,165,233,.12); }
-    .prompt small { display:block; font-size:.68rem; letter-spacing:.14em; color:var(--teal); text-transform:uppercase; margin-bottom:2px; }
-
-    /* 勤怠ログ */
-    .log { position:absolute; z-index:4; left:14px; bottom:14px; width:min(52%,210px); background:rgba(15,27,45,.88);
-      border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:8px 10px; font:500 .68rem/1.9 'Inter',monospace; color:rgba(255,255,255,.85); }
-    .log i { font-style:normal; color:var(--ok); }
-
-    /* ── しくみ ── */
-    .flow { padding:96px 24px; background:#fff; }
-    .flow-inner { max-width:1120px; margin:0 auto; }
-    .flow h2 { text-align:center; font-size:clamp(1.4rem,3vw,1.9rem); margin-bottom:56px; }
-    .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:0; position:relative; }
-    .steps::before { content:''; position:absolute; top:28px; left:16%; right:16%; height:1px; background:var(--border); }
-    .step { text-align:center; padding:0 20px; position:relative; }
-    .step .dot { width:56px; height:56px; margin:0 auto 18px; border-radius:50%; background:var(--navy); color:var(--teal);
-      display:grid; place-items:center; font:500 1.1rem 'Inter',sans-serif; box-shadow:0 0 0 8px #fff; position:relative; }
-    .step h3 { font-size:1.02rem; margin-bottom:6px; }
-    .step p { font-size:.88rem; color:var(--gray); }
-
-    /* ── CTA ── */
-    .cta { background:var(--navy); color:#fff; text-align:center; padding:96px 24px; }
-    .cta h2 { font-size:clamp(1.4rem,3vw,1.9rem); margin-bottom:14px; }
-    .cta p { color:rgba(255,255,255,.7); margin-bottom:30px; }
-    .note { margin-top:36px; font-size:.74rem; color:rgba(255,255,255,.45); }
-
-    footer { background:#0a121f; color:rgba(255,255,255,.55); text-align:center; padding:28px 24px; font-size:.8rem; }
-    footer a { text-decoration:underline; }
-
-    /* ── scroll reveal ── */
-    .rv { opacity:0; transform:translateY(24px); transition:opacity .8s, transform .8s; }
-    .in .rv, .rv.in { opacity:1; transform:none; }
+    /* ── Scroll Snap Deck (1画面 = 100dvh 完結) ── */
+    .deck {
+      height: 100dvh;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+    .slide {
+      height: 100dvh;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      padding: calc(var(--header-h) + 14px) 38px 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .slide-inner {
+      width: 100%;
+      max-width: 1280px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(20px) scale(0.985);
+      filter: blur(4px);
+      transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                  filter 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .slide.is-active .slide-inner {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+    }
     @media (prefers-reduced-motion: reduce) {
-      .rv, .notice { opacity:1 !important; transform:none !important; transition:none !important; }
-      .scan, .bbox, .rec::before { animation:none !important; }
+      .slide-inner { opacity: 1; transform: none; filter: none; transition: none; }
     }
 
-    @media (max-width:900px) {
-      header { padding:0 16px; }
-      .hero-grid, .case-inner { grid-template-columns:1fr; gap:40px; }
-      .case.rev .case-inner > .txt { order:0; }
-      section.case { padding:72px 20px; }
-      .steps { grid-template-columns:1fr; gap:36px; }
-      .cmp-grid { grid-template-columns:1fr; }
-      .compare { padding:72px 20px; }
-      .flowline { grid-template-columns:1fr; }
-      .flowline .arr { transform:rotate(90deg); justify-self:center; }
-      .steps::before { display:none; }
-      nav a.back { display:none; }
+    /* ── Slide Navigation Dots ── */
+    .slide-dots {
+      position: fixed;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 90;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
-    @media (max-width:600px) {
-      .notice { top:34px; right:8px; width:60%; padding:7px 9px; border-radius:10px; font-size:.66rem; }
-      .notice b { font-size:.72rem; }
-      .notice .top { font-size:.6rem; }
-      .cam-bar { font-size:.6rem; padding:8px 10px; }
-      .log { left:8px; bottom:8px; font-size:.58rem; padding:5px 8px; }
+    .slide-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 0;
+      transition: all 0.2s;
+    }
+    .slide-dot.active {
+      background: var(--teal);
+      border-color: var(--teal);
+      transform: scale(1.25);
+      box-shadow: 0 0 10px rgba(14,165,233,0.7);
+    }
+    .next-hint {
+      position: absolute;
+      bottom: 8px; left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.45);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2px 12px;
+      border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .next-hint:hover { color: #fff; border-color: var(--teal); }
+
+    /* ── Slide 1: Hero + 双方向AI比較 ── */
+    .s-hero {
+      background: radial-gradient(ellipse 75% 65% at 75% 40%, rgba(14,165,233,0.2), transparent 70%),
+                  linear-gradient(135deg, #070d18 0%, #0f1b2d 100%);
+    }
+    #heroCanvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none; opacity: 0.55; z-index: 0;
+    }
+    .s-hero .slide-inner { position: relative; z-index: 2; }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 24px;
+      align-items: center;
+    }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-mono); font-size: 0.68rem;
+      color: var(--teal); letter-spacing: 0.14em; text-transform: uppercase;
+      border: 1px solid rgba(14,165,233,0.4);
+      padding: 2px 10px; border-radius: 999px; margin-bottom: 10px;
+    }
+    .hero-left h1 {
+      font-size: clamp(1.55rem, 3.6vw, 2.7rem);
+      line-height: 1.28; font-weight: 700; margin-bottom: 12px;
+    }
+    .hero-left h1 em { font-style: normal; color: var(--teal); }
+    .hero-lead {
+      font-size: clamp(0.88rem, 1.55vw, 1.04rem);
+      color: #cbd5e1; line-height: 1.65; margin-bottom: 16px;
+    }
+    /* 双方向フロー (コンパクト版) */
+    .flowline {
+      display: grid; grid-template-columns: 1fr auto 1fr auto 1fr;
+      gap: 6px; align-items: center; margin-bottom: 14px;
+    }
+    .flowline .node {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 7px; padding: 6px 8px;
+      font-size: 0.7rem; line-height: 1.35;
+    }
+    .flowline .node b {
+      display: block; color: var(--teal);
+      font-family: var(--font-mono); font-size: 0.62rem; letter-spacing: 0.1em;
+    }
+    .flowline .arr { color: var(--teal); font-size: 0.8rem; }
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--teal); color: #fff;
+      padding: 8px 16px; border-radius: 6px; border: none;
+      font-size: 0.8rem; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary:hover { background: var(--blue); }
+    .btn-ghost {
+      border: 1px solid rgba(255,255,255,0.3); color: #fff;
+      padding: 8px 14px; border-radius: 6px; font-size: 0.78rem;
+      background: rgba(255,255,255,0.04);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-ghost:hover { border-color: var(--teal); }
+
+    /* ── Camera Frame (共通・1画面フィット) ── */
+    .cam {
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #060b14;
+      border: 1px solid rgba(14,165,233,0.3);
+      box-shadow: 0 18px 40px -15px rgba(0,0,0,0.65);
+      aspect-ratio: 16 / 10;
+      max-height: calc(100dvh - 130px);
+      width: 100%;
+    }
+    .cam img.cam-photo {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      z-index: 0;
+      filter: brightness(0.85) contrast(1.05);
+    }
+    .cam svg { position: relative; z-index: 1; width: 100%; height: 100%; display: block; }
+    .cam-bar {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+      display: flex; justify-content: space-between;
+      padding: 7px 12px;
+      font-family: var(--font-mono); font-size: 0.64rem;
+      color: rgba(255,255,255,0.9);
+      background: linear-gradient(rgba(0,0,0,0.65), transparent);
+    }
+    .rec { display: inline-flex; align-items: center; gap: 5px; }
+    .rec::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: #ef4444; animation: blink 1.4s infinite;
+    }
+    @keyframes blink { 50% { opacity: 0.25; } }
+    .scan {
+      position: absolute; left: 0; right: 0; height: 2px; top: 0;
+      background: linear-gradient(90deg, transparent, rgba(14,165,233,0.9), transparent);
+      animation: scan 4s linear infinite; z-index: 2; opacity: 0.65;
+    }
+    @keyframes scan { from { top: 0; } to { top: 100%; } }
+    .bbox { animation: pulse 2.2s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: 0.65; } }
+
+    .notice {
+      position: absolute; z-index: 4; right: 10px; bottom: 10px;
+      width: min(64%, 240px);
+      background: rgba(255,255,255,0.96); color: #111;
+      border-radius: 10px; padding: 8px 11px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.4);
+      font-size: 0.7rem; line-height: 1.45;
+      animation: popNotice 0.35s ease;
+    }
+    @keyframes popNotice {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .notice .top { display: flex; justify-content: space-between; color: #64748b; font-size: 0.62rem; margin-bottom: 2px; }
+    .notice b { display: block; font-size: 0.74rem; color: #0f1b2d; }
+    .notice.warn b { color: #b45309; }
+
+    /* ── Slide 2: 5大ユースケース インタラクティブ・ステージ ── */
+    .s-cases {
+      background: linear-gradient(180deg, #0a1322 0%, #0f1b2d 100%);
+      border-top: 1px solid var(--border);
+    }
+    .cases-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .case-tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .case-tabs::-webkit-scrollbar { display: none; }
+    .case-tab {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      color: #94a3b8;
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .case-tab:hover { color: #fff; border-color: rgba(14,165,233,0.5); }
+    .case-tab.active {
+      background: rgba(14,165,233,0.2);
+      border-color: var(--teal);
+      color: #fff;
+      font-weight: 600;
+    }
+    .case-tab span { font-family: var(--font-mono); color: var(--teal); margin-right: 5px; font-size: 0.76rem; }
+
+    .case-stage {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 28px;
+      align-items: center;
+      background: rgba(19, 34, 56, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 26px;
+    }
+    .case-num-row {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+    }
+    .case-num { font-family: var(--font-mono); font-size: 1.65rem; font-weight: 700; color: var(--teal); line-height: 1; }
+    .case-tag {
+      font-family: var(--font-mono); font-size: 0.72rem;
+      color: #7dd3fc; background: rgba(14,165,233,0.14);
+      padding: 3px 10px; border-radius: 4px;
+    }
+    .case-left h2 {
+      font-size: clamp(1.22rem, 2.4vw, 1.65rem);
+      line-height: 1.35; margin-bottom: 10px; color: #fff;
+    }
+    .case-left p {
+      font-size: clamp(0.84rem, 1.45vw, 0.96rem);
+      color: #cbd5e1; line-height: 1.65; margin-bottom: 14px;
+    }
+    .prompt-label {
+      font-size: 0.78rem; color: var(--teal); font-weight: 600;
+      margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+    }
+    .prompt-chips { display: flex; flex-direction: column; gap: 8px; }
+    .prompt-chip {
+      text-align: left;
+      padding: 9px 13px;
+      border-radius: 8px;
+      background: rgba(7,13,24,0.65);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      font-size: 0.84rem;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      transition: all 0.2s;
+    }
+    .prompt-chip:hover { border-color: rgba(14,165,233,0.45); color: #fff; }
+    .prompt-chip.active {
+      background: rgba(14,165,233,0.16);
+      border-color: var(--teal);
+      color: #fff;
+    }
+    .prompt-chip small { font-family: var(--font-mono); font-size: 0.64rem; color: var(--teal); white-space: nowrap; }
+
+    .log-overlay {
+      position: absolute; z-index: 4; left: 10px; bottom: 10px;
+      background: rgba(7, 13, 24, 0.88);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 7px; padding: 6px 9px;
+      font-family: var(--font-mono); font-size: 0.6rem; line-height: 1.65;
+      color: #e2e8f0;
+    }
+    .log-overlay i { font-style: normal; color: var(--ok); font-weight: 600; }
+
+    /* ── Slide 3: しくみ + Live PoC + CTA ── */
+    .s-cta {
+      background: radial-gradient(ellipse 70% 70% at 50% 20%, rgba(14,165,233,0.16), transparent 70%),
+                  #070d18;
+      border-top: 1px solid var(--border);
+    }
+    .cta-grid {
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 24px;
+      align-items: center;
+    }
+    .steps-compact {
+      display: flex; flex-direction: column; gap: 10px; margin: 12px 0 16px;
+    }
+    .step-row {
+      display: flex; align-items: center; gap: 12px;
+      background: rgba(19, 34, 56, 0.55);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px;
+    }
+    .step-dot {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: rgba(14,165,233,0.18); color: var(--teal);
+      border: 1px solid rgba(14,165,233,0.4);
+      display: grid; place-items: center; flex-shrink: 0;
+      font-family: var(--font-mono); font-size: 0.8rem; font-weight: 700;
+    }
+    .step-row h3 { font-size: 0.86rem; color: #fff; margin-bottom: 1px; }
+    .step-row p { font-size: 0.74rem; color: #94a3b8; line-height: 1.4; }
+
+    .poc-box {
+      background: rgba(19, 34, 56, 0.65);
+      border: 1px solid rgba(14,165,233,0.3);
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .poc-box h3 { font-size: 1.02rem; margin-bottom: 6px; color: #fff; }
+    .poc-box p { font-size: 0.78rem; color: #cbd5e1; line-height: 1.55; margin-bottom: 12px; }
+    .poc-term {
+      background: #04080f; border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 12px;
+      font-family: var(--font-mono); font-size: 0.66rem; line-height: 1.65;
+      color: #94a3b8; margin-bottom: 14px;
+    }
+    .poc-term .g { color: var(--ok); }
+    .poc-term .c { color: var(--teal); }
+    .mini-footer {
+      margin-top: 12px; font-size: 0.68rem; color: #64748b;
+      display: flex; gap: 12px; flex-wrap: wrap;
+    }
+    .mini-footer a:hover { color: var(--teal); }
+
+    /* ── スマホ縦向き (Portrait) フォールバック ── */
+    @media (max-width: 680px) and (orientation: portrait) {
+      .slide { padding: calc(var(--header-h) + 10px) 34px 26px 14px; }
+      .hero-grid, .case-stage, .cta-grid { grid-template-columns: 1fr; gap: 12px; }
+      .cam { max-height: 30dvh; }
+      .flowline { display: none; }
+      .nav-pill { display: none; }
+    }
+
+    /* ── スマホ横型 (Landscape: 高さ360〜440px) の厳密最適化 ── */
+    @media (max-height: 460px) and (orientation: landscape) {
+      :root { --header-h: 46px; }
+      .slide { padding: calc(var(--header-h) + 6px) 38px 10px 18px; }
+      .hero-left h1 { font-size: 1.45rem; margin-bottom: 6px; }
+      .hero-lead { font-size: 0.8rem; margin-bottom: 10px; line-height: 1.5; }
+      .flowline { margin-bottom: 10px; }
+      .flowline .node { padding: 5px 8px; font-size: 0.7rem; }
+      .cam { max-height: calc(100dvh - 76px); }
+      .case-stage { padding: 12px 16px; gap: 16px; }
+      .case-left h2 { font-size: 1.12rem; margin-bottom: 4px; }
+      .case-left p { font-size: 0.78rem; margin-bottom: 8px; line-height: 1.45; }
+      .prompt-chip { padding: 6px 10px; font-size: 0.76rem; }
+      .steps-compact { gap: 6px; margin: 8px 0 10px; }
+      .step-row { padding: 6px 10px; }
+      .poc-box { padding: 12px 14px; }
+      .poc-term { padding: 7px 10px; margin-bottom: 10px; font-size: 0.62rem; }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <a href="index.html" class="logo">Catch<span>AIT</span></a>
-  <nav>
-    <a class="back" href="index.html#features">サービス</a>
-    <a class="btn-cta" href="hearing_form.html" target="_blank">いますぐ無料相談</a>
-  </nav>
-</header>
+  <header>
+    <a href="index.html" class="logo">Catch<span>AIT</span></a>
+    <nav>
+      <a class="nav-pill" href="usecase_ai.html">業務・AI自動化事例 →</a>
+      <a class="btn-cta" href="hearing_form.html" target="_blank">無料相談</a>
+      <button class="hamburger" id="hamburger" type="button" aria-label="メニュー" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </header>
 
-<!-- ════ HERO ════ -->
-<section class="hero">
-  <div class="hero-grid">
-    <div>
-      <span class="eyebrow">Use Case</span>
-      <h1>Webカメラの検知を、<br /><em>言葉で</em>カスタマイズ。</h1>
-      <p class="lead">AIを加えるだけで、検知と通知は劇的に賢くなります。「動いた」ではなく「何が起きたか」を知らせます。</p>
-      <div class="hero-actions">
-        <a class="btn-primary" href="#case1">事例を見る</a>
-        <a class="btn-ghost" href="hearing_form.html" target="_blank">相談する</a>
-      </div>
-    </div>
-
-    <!-- キービジュアル: 検知オーバーレイ -->
-    <div class="cam in" aria-hidden="true">
-      <div class="cam-bar"><span class="rec">REC · CAM 01</span><span>AI DETECT ON</span></div>
-      <div class="scan"></div>
-      <svg viewBox="0 0 640 400" role="img" aria-label="">
-        <defs>
-          <linearGradient id="hwall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b2b40"/><stop offset="1" stop-color="#0e1826"/></linearGradient>
-          <radialGradient id="hlamp" cx=".8" cy=".15" r=".6"><stop offset="0" stop-color="#ffd9a0" stop-opacity=".35"/><stop offset="1" stop-color="#ffd9a0" stop-opacity="0"/></radialGradient>
-        </defs>
-        <rect width="640" height="400" fill="url(#hwall)"/>
-        <rect width="640" height="400" fill="url(#hlamp)"/>
-        <rect y="300" width="640" height="100" fill="#0b121c"/>
-        <!-- 窓 -->
-        <rect x="60" y="60" width="150" height="130" rx="3" fill="#24405f"/>
-        <path d="M135 60v130M60 125h150" stroke="#0e1826" stroke-width="5"/>
-        <!-- 人物 -->
-        <g class="bbox">
-          <circle cx="420" cy="170" r="30" fill="#2c3f58"/>
-          <path d="M360 330c0-60 25-100 60-100s60 40 60 100z" fill="#2c3f58"/>
-          <path d="M340 150v-14h22M500 150v-14h-22M340 344v14h22M500 344v14h-22" fill="none" stroke="#0ea5e9" stroke-width="3"/>
-        </g>
-        <!-- 犬 -->
-        <g class="bbox" style="animation-delay:.8s">
-          <ellipse cx="190" cy="318" rx="52" ry="26" fill="#3a4c64"/>
-          <circle cx="150" cy="296" r="19" fill="#3a4c64"/>
-          <path d="M139 282l-8-20 18 10zM161 281l10-19 6 20z" fill="#3a4c64"/>
-          <path d="M238 310c20-10 30-30 22-46" fill="none" stroke="#3a4c64" stroke-width="9" stroke-linecap="round"/>
-          <path d="M112 270v-14h20M262 270v-14h-20M112 350v14h20M262 350v14h-20" fill="none" stroke="#38bdf8" stroke-width="3"/>
-        </g>
-        <g font-family="Inter,monospace" font-size="12" fill="#fff">
-          <rect x="340" y="118" width="108" height="20" fill="#0ea5e9"/><text x="347" y="132">person 0.97</text>
-          <rect x="112" y="238" width="86" height="20" fill="#38bdf8"/><text x="119" y="252" fill="#0f1b2d">dog 0.94</text>
-        </g>
-      </svg>
-      <div class="notice"><div class="top"><span>CatchAIT</span><span>いま</span></div><b>犬がソファに上がりました</b>リビング · 14:32</div>
-    </div>
+  <div class="mobile-drawer" id="mobileDrawer">
+    <a href="index.html">ホーム</a>
+    <a href="usecase_webcam.html" class="active">Webカメラ検知ユースケース</a>
+    <a href="usecase_ai.html">AI・業務自動化ユースケース</a>
+    <a href="Apps/objDetectionPoc/index.html" target="_blank">人物検知ブラウザデモ (PoC)</a>
+    <a href="aboutUS.html">About Us</a>
+    <a href="hearing_form.html">無料相談・ヒアリングシート</a>
   </div>
-</section>
 
-<!-- ════ 比較: これまで vs AI ════ -->
-<section class="compare">
-  <div class="compare-inner">
-    <h2 class="rv">検知して、知らせるだけで終わらない。</h2>
-    <p class="sub rv">AIは、意図を理解して、動きまで起こします。</p>
-    <div class="cmp-grid">
-      <div class="cmp old rv">
-        <span class="tag">これまで</span>
-        <h3>決まった動きを検知して、<br />決まった通知を送るだけ</h3>
-        <ul>
-          <li>検知できるのは、物体など特定のアクションのみ</li>
-          <li>通知は定型で、状況は読み取れない</li>
-          <li>受け取るだけの一方通行</li>
-        </ul>
-      </div>
-      <div class="cmp new rv">
-        <span class="tag">AIを使った検知</span>
-        <h3>知りたいことを言葉で伝え、<br />通知も操作も任せられる</h3>
-        <ul>
-          <li>通知してほしい行動を、文章で具体的に指定できる</li>
-          <li>通知を受け取るだけでなく、機器へ指示を返せる(双方向)</li>
-          <li>スピーカーからの声かけ、エアコンの起動など、複数の操作を組み合わせて実行できる</li>
-        </ul>
-        <div class="flowline" aria-hidden="true">
-          <div class="node"><b>DETECT</b>状況を理解して検知</div><span class="arr">→</span>
-          <div class="node"><b>JUDGE</b>言葉の条件で判断</div><span class="arr">→</span>
-          <div class="node"><b>ACT</b>通知・音声・機器操作</div>
+  <!-- Slide Dots -->
+  <div class="slide-dots" aria-label="画面切り替え">
+    <button class="slide-dot active" data-slide="0" aria-label="概要"></button>
+    <button class="slide-dot" data-slide="1" aria-label="5つのユースケース"></button>
+    <button class="slide-dot" data-slide="2" aria-label="導入とPoCデモ"></button>
+  </div>
+
+  <main class="deck" id="deck">
+
+    <!-- ════ SLIDE 1: HERO & 双方向AI ════ -->
+    <section class="slide s-hero is-active" data-idx="0">
+      <canvas id="heroCanvas" aria-hidden="true"></canvas>
+      <div class="slide-inner">
+        <div class="hero-grid">
+          <div class="hero-left">
+            <span class="eyebrow">Use Case · AI Vision</span>
+            <h1>Webカメラの検知を、<br /><em>言葉で</em>カスタマイズ。</h1>
+            <p class="hero-lead">
+              「動いた」ではなく「何が起きたか」を判断。通知だけでなく、スピーカーでの声かけやエアコン起動など機器操作まで双方向に連携します。
+            </p>
+            <div class="flowline" aria-hidden="true">
+              <div class="node"><b>DETECT</b>状況を理解して検知</div><span class="arr">→</span>
+              <div class="node"><b>JUDGE</b>言葉の条件で判断</div><span class="arr">→</span>
+              <div class="node"><b>ACT</b>通知・音声・機器操作</div>
+            </div>
+            <div class="hero-actions">
+              <button class="btn-primary" type="button" onclick="goSlide(1)">5つの事例を体験 ↓</button>
+              <a class="btn-ghost" href="Apps/objDetectionPoc/index.html" target="_blank">実機PoCを試す ↗</a>
+            </div>
+          </div>
+
+          <div class="cam" aria-hidden="true">
+            <div class="cam-bar"><span class="rec">REC · CAM 01</span><span>AI DETECT ON</span></div>
+            <div class="scan"></div>
+            <img class="cam-photo" src="assets/images/cam_pet.jpg" alt="" />
+            <svg viewBox="0 0 640 400">
+              <g class="bbox">
+                <path d="M230 175v-14h22M410 175v-14h-22M230 295v14h22M410 295v14h-22" fill="none" stroke="#0ea5e9" stroke-width="3.5"/>
+                <rect x="230" y="138" width="128" height="22" fill="#0ea5e9"/>
+                <text x="238" y="154" font-family="Inter,monospace" font-size="13" fill="#fff">cat · sofa 0.96</text>
+              </g>
+              <rect x="110" y="155" width="420" height="175" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="8 6" opacity="0.85"/>
+            </svg>
+            <div class="notice"><div class="top"><span>CatchAIT</span><span>いま</span></div><b>猫がソファに上がりました</b>音声で声かけ＋LINE通知</div>
+          </div>
         </div>
-        <div class="eg"><small>Example</small>「猫がソファに上がったら、スピーカーで声をかけて。室温が高ければ、エアコンも入れて」</div>
       </div>
-    </div>
-  </div>
-</section>
+      <button class="next-hint" type="button" onclick="goSlide(1)">SWIPE / NEXT ▾</button>
+    </section>
 
-<!-- ════ CASE 1: ペット ════ -->
-<section class="case alt" id="case1">
-  <div class="case-inner">
-    <div class="txt rv">
-      <div class="num">01</div>
-      <h2>ペットの気になる動きを、<br />すぐ知らせる。</h2>
-      <p>通知したい場面を、ふだんの言葉で書くだけ。動画ではなく、状況の説明つきで届きます。</p>
-      <div class="prompt"><small>Your words</small>「ごはんを残している」「ソファに上がった」「同じ場所を長時間うろうろしている」</div>
-      <div class="chips"><span>留守中の見守り</span><span>いたずら防止</span><span>体調の変化に気づく</span></div>
-    </div>
-    <div class="cam rv" aria-hidden="true">
-      <div class="cam-bar"><span class="rec">LIVING · 14:32:08</span><span>PET WATCH</span></div>
-      <div class="scan"></div>
-      <svg viewBox="0 0 640 400" role="img" aria-label="">
-        <defs>
-          <linearGradient id="pwall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9cdb8"/><stop offset="1" stop-color="#c5b79e"/></linearGradient>
-        </defs>
-        <rect width="640" height="400" fill="url(#pwall)"/>
-        <rect y="305" width="640" height="95" fill="#8a7a62"/>
-        <!-- 窓の光 -->
-        <rect x="430" y="50" width="150" height="150" fill="#f4ecd8"/>
-        <path d="M505 50v150M430 125h150" stroke="#c5b79e" stroke-width="5"/>
-        <!-- ソファ -->
-        <rect x="70" y="205" width="360" height="110" rx="22" fill="#5b6b7d"/>
-        <rect x="52" y="235" width="46" height="95" rx="18" fill="#4a5968"/>
-        <rect x="402" y="235" width="46" height="95" rx="18" fill="#4a5968"/>
-        <rect x="110" y="230" width="280" height="64" rx="12" fill="#6b7c8f"/>
-        <!-- 猫 -->
-        <g class="bbox">
-          <ellipse cx="270" cy="228" rx="52" ry="26" fill="#2f2a28"/>
-          <circle cx="222" cy="208" r="20" fill="#2f2a28"/>
-          <path d="M209 194l-5-20 17 10zM232 192l12-18 3 22z" fill="#2f2a28"/>
-          <path d="M320 232c26 6 40-8 36-30" fill="none" stroke="#2f2a28" stroke-width="9" stroke-linecap="round"/>
-          <path d="M182 170v-14h22M362 170v-14h-22M182 262v14h22M362 262v14h-22" fill="none" stroke="#0ea5e9" stroke-width="3"/>
-          <rect x="182" y="132" width="168" height="20" fill="#0ea5e9"/>
-          <text x="190" y="146" font-family="Inter,monospace" font-size="12" fill="#fff">cat · on sofa 0.94</text>
-        </g>
-        <!-- 立入禁止エリア -->
-        <rect x="70" y="205" width="360" height="110" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="8 6"/>
-      </svg>
-      <div class="notice"><div class="top"><span>CatchAIT</span><span>14:32</span></div><b>猫がソファに上がりました</b>設定したエリアに5秒以上滞在</div>
-    </div>
-  </div>
-</section>
+    <!-- ════ SLIDE 2: 5大ユースケース × インタラクティブ体験 ════ -->
+    <section class="slide s-cases" data-idx="1">
+      <div class="slide-inner">
+        <div class="cases-topbar">
+          <div class="case-tabs" role="tablist">
+            <button class="case-tab active" data-case="pet"><span>01</span>ペット見守り</button>
+            <button class="case-tab" data-case="parking"><span>02</span>駐禁対策</button>
+            <button class="case-tab" data-case="attendance"><span>03</span>顔認証勤怠</button>
+            <button class="case-tab" data-case="store"><span>04</span>店舗・防犯切替</button>
+            <button class="case-tab" data-case="family"><span>05</span>家族見守り</button>
+          </div>
+        </div>
 
-<!-- ════ CASE 2: 駐禁対策 ════ -->
-<section class="case night rev" id="case2">
-  <div class="case-inner">
-    <div class="txt rv">
-      <div class="num">02</div>
-      <h2>お客様を、<br />不要な違反金から守る。</h2>
-      <p>駐車禁止エリアの停車を検知し、時間を超える前に担当者へ。違反になる前に動けます。</p>
-      <div class="prompt"><small>Your words</small>「入口前に10分以上止まっている車があれば知らせて」</div>
-      <div class="chips"><span>店舗・月極駐車場</span><span>荷捌きスペース</span><span>警告まで残り時間を表示</span></div>
-    </div>
-    <div class="cam rv" aria-hidden="true">
-      <div class="cam-bar"><span class="rec">ENTRANCE · 16:05:41</span><span>NO PARKING ZONE</span></div>
-      <div class="scan"></div>
-      <svg viewBox="0 0 640 400" role="img" aria-label="">
-        <defs>
-          <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <rect width="14" height="14" fill="none"/><rect width="5" height="14" fill="#f59e0b" opacity=".55"/>
-          </pattern>
-          <linearGradient id="road" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2531"/><stop offset="1" stop-color="#10161f"/></linearGradient>
-        </defs>
-        <rect width="640" height="400" fill="url(#road)"/>
-        <!-- 歩道 -->
-        <path d="M0 0h640v110H0z" fill="#27323f"/><path d="M0 110h640" stroke="#3d4b5b" stroke-width="4"/>
-        <!-- 中央線 -->
-        <path d="M0 330h640" stroke="#e5e7eb" stroke-width="3" stroke-dasharray="46 30" opacity=".5"/>
-        <!-- 禁止ゾーン -->
-        <rect x="120" y="150" width="400" height="140" fill="url(#hatch)"/>
-        <rect x="120" y="150" width="400" height="140" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
-        <!-- 車(俯瞰) -->
-        <g class="bbox">
-          <rect x="210" y="178" width="220" height="84" rx="26" fill="#cfd6df"/>
-          <rect x="262" y="190" width="116" height="60" rx="14" fill="#5a6b7e"/>
-          <rect x="226" y="186" width="22" height="10" rx="3" fill="#fde68a"/><rect x="226" y="244" width="22" height="10" rx="3" fill="#fde68a"/>
-          <path d="M190 164v-16h24M450 164v-16h-24M190 276v16h24M450 276v16h-24" fill="none" stroke="#f59e0b" stroke-width="3"/>
-          <rect x="190" y="126" width="148" height="20" fill="#f59e0b"/>
-          <text x="198" y="140" font-family="Inter,monospace" font-size="12" fill="#0f1b2d">car · stopped 12:40</text>
-        </g>
-        <!-- タイマーバー -->
-        <rect x="120" y="340" width="400" height="10" rx="5" fill="#2b3746"/>
-        <rect x="120" y="340" width="326" height="10" rx="5" fill="#f59e0b"/>
-        <text x="120" y="334" font-family="Inter,monospace" font-size="12" fill="#cbd5e1">警告まで あと 02:20</text>
-      </svg>
-      <div class="notice warn"><div class="top"><span>CatchAIT</span><span>16:05</span></div><b>入口前に停車して12分です</b>あと2分で警告ラインを超えます</div>
-    </div>
-  </div>
-</section>
+        <div class="case-stage">
+          <div class="case-left">
+            <div class="case-num-row">
+              <span class="case-num" id="cNum">01</span>
+              <span class="case-tag" id="cTag">PET WATCH</span>
+            </div>
+            <h2 id="cTitle">ペットの気になる動きを、すぐ知らせる。</h2>
+            <p id="cDesc">通知したい場面をふだんの言葉で書くだけ。動画ではなく状況の説明付きで届き、声かけ連携も可能です。</p>
 
-<!-- ════ CASE 3: 勤怠 ════ -->
-<section class="case alt" id="case3">
-  <div class="case-inner">
-    <div class="txt rv">
-      <div class="num">03</div>
-      <h2>顔を認証して、<br />勤怠を自動で記録。</h2>
-      <p>出入口を通るだけで、出退勤が残ります。打刻や転記の手作業はなくなります。</p>
-      <div class="prompt"><small>Your words</small>「登録した人が入ったら出勤、出たら退勤として記録して」</div>
-      <div class="chips"><span>事前登録・同意が前提</span><span>CSV/表計算へ出力</span><span>打刻忘れの防止</span></div>
-    </div>
-    <div class="cam rv" aria-hidden="true">
-      <div class="cam-bar"><span class="rec">ENTRANCE · 08:57:12</span><span>ATTENDANCE</span></div>
-      <div class="scan"></div>
-      <svg viewBox="0 0 640 400" role="img" aria-label="">
-        <defs>
-          <linearGradient id="awall" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#e8e4dc"/><stop offset="1" stop-color="#d4cec2"/></linearGradient>
-          <linearGradient id="door" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fb3c4"/><stop offset="1" stop-color="#7d93a6"/></linearGradient>
-        </defs>
-        <rect width="640" height="400" fill="url(#awall)"/>
-        <rect y="330" width="640" height="70" fill="#a39b8c"/>
-        <!-- ドア -->
-        <rect x="360" y="40" width="200" height="290" rx="3" fill="url(#door)" stroke="#6b7c8c" stroke-width="6"/>
-        <rect x="380" y="60" width="160" height="110" fill="#c8d6e2" opacity=".6"/>
-        <circle cx="370" cy="200" r="0"/><rect x="520" y="190" width="10" height="38" rx="5" fill="#4a5968"/>
-        <!-- 人物 -->
-        <g>
-          <circle cx="210" cy="140" r="38" fill="#3a3f4a"/>
-          <path d="M120 340c0-80 40-130 90-130s90 50 90 130z" fill="#2c3f58"/>
-          <!-- 顔認証ブラケット -->
+            <div class="prompt-label">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              言葉の条件を切り替えてみる：
+            </div>
+            <div class="prompt-chips" id="promptChips"></div>
+          </div>
+
+          <div class="cam" id="simCam">
+            <div class="cam-bar"><span class="rec" id="simCamBar">LIVING · 14:32:08</span><span id="simCamMode">PET WATCH</span></div>
+            <div class="scan"></div>
+            <img class="cam-photo" id="simPhoto" src="assets/images/cam_pet.jpg" alt="" />
+            <svg id="simSvg" viewBox="0 0 640 400"></svg>
+            <div class="log-overlay" id="simLogOverlay" style="display:none;"></div>
+            <div class="notice" id="simNotice">
+              <div class="top"><span>CatchAIT</span><span id="simNTime">14:32</span></div>
+              <b id="simNTitle">猫がソファに上がりました</b>
+              <span id="simNBody">設定したエリアに5秒以上滞在</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="next-hint" type="button" onclick="goSlide(2)">導入方法・PoCデモ ▾</button>
+    </section>
+
+    <!-- ════ SLIDE 3: しくみ + 実機PoC + 無料相談 ════ -->
+    <section class="slide s-cta" data-idx="2">
+      <div class="slide-inner">
+        <div class="cta-grid">
+          <div>
+            <span class="eyebrow">3 Steps &amp; Consultation</span>
+            <h2 style="font-size:clamp(1.25rem,2.6vw,1.8rem);line-height:1.3;">はじめ方は、3ステップ。</h2>
+            <div class="steps-compact">
+              <div class="step-row">
+                <div class="step-dot">1</div>
+                <div><h3>カメラをつなぐ</h3><p>お手持ちのWebカメラやスマホ端末で始められます。</p></div>
+              </div>
+              <div class="step-row">
+                <div class="step-dot">2</div>
+                <div><h3>知りたいことを言葉で書く</h3><p>通知や機器操作の条件をふだんの日本語で入力します。</p></div>
+              </div>
+              <div class="step-row">
+                <div class="step-dot">3</div>
+                <div><h3>スマホに届く・自動で動く</h3><p>LINE通知、スプレッドシート記帳、音声警告を自動実行。</p></div>
+              </div>
+            </div>
+            <div class="hero-actions">
+              <a class="btn-primary" href="hearing_form.html" target="_blank">いますぐ無料相談</a>
+              <a class="btn-ghost" href="usecase_ai.html">AI業務自動化事例 →</a>
+            </div>
+            <div class="mini-footer">
+              <span>&copy; 2026 CatchAIT</span>
+              <a href="index.html">ホームへ戻る</a>
+              <a href="tokutei.html">特定商取引法に基づく表示</a>
+            </div>
+          </div>
+
+          <div class="poc-box">
+            <span class="eyebrow" style="margin-bottom:8px;">Live Browser PoC</span>
+            <h3>ブラウザだけで動く人物検知デモ</h3>
+            <p>サーバーへ映像を送らず、お手元のスマホ・PCのブラウザ単体でリアルタイム人物検知と統計CSV記録を行うPoCを体験できます。</p>
+            <div class="poc-term">
+              <div><span class="c">[14:32:01]</span> MediaPipe EfficientDet-Lite0 (GPU)</div>
+              <div><span class="g">[14:32:08]</span> infer: 14.2ms · person 93%</div>
+              <div><span class="c">[14:32:09]</span> ALERT #1 (連続2フレーム一致)</div>
+            </div>
+            <a class="btn-primary" style="width:100%;justify-content:center;" href="Apps/objDetectionPoc/index.html" target="_blank">
+              人物検知 PoC を開いて試す ↗
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    /* ── Drawer ── */
+    (function () {
+      const btn = document.getElementById('hamburger');
+      const drawer = document.getElementById('mobileDrawer');
+      const close = () => { btn.classList.remove('open'); drawer.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
+      btn.addEventListener('click', () => {
+        const open = btn.classList.toggle('open');
+        drawer.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', String(open));
+      });
+      drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+      document.addEventListener('click', e => { if (drawer.classList.contains('open') && !drawer.contains(e.target) && !btn.contains(e.target)) close(); });
+    })();
+
+    /* ── Slide Navigation ── */
+    const deck = document.getElementById('deck');
+    const dots = document.querySelectorAll('.slide-dot');
+    const slides = document.querySelectorAll('.slide');
+
+    function goSlide(idx) {
+      slides[idx]?.scrollIntoView({ behavior: 'smooth' });
+    }
+    dots.forEach(d => d.addEventListener('click', () => goSlide(Number(d.dataset.slide))));
+
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('is-active');
+          const i = Number(en.target.dataset.idx);
+          dots.forEach((d, idx) => d.classList.toggle('active', idx === i));
+        }
+      });
+    }, { root: deck, threshold: 0.45 });
+    slides.forEach(s => obs.observe(s));
+
+    /* ── Hero Canvas ── */
+    (function () {
+      const c = document.getElementById('heroCanvas');
+      if (!c) return;
+      const ctx = c.getContext('2d');
+      let w, h, pts = [];
+      function resize() {
+        w = c.width = c.offsetWidth; h = c.height = c.offsetHeight;
+        pts = Array.from({ length: 28 }, () => ({
+          x: Math.random() * w, y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35
+        }));
+      }
+      window.addEventListener('resize', resize); resize();
+      (function loop() {
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < pts.length; i++) {
+          const p = pts[i]; p.x += p.vx; p.y += p.vy;
+          if (p.x < 0 || p.x > w) p.vx *= -1;
+          if (p.y < 0 || p.y > h) p.vy *= -1;
+          ctx.fillStyle = 'rgba(14,165,233,0.45)';
+          ctx.beginPath(); ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2); ctx.fill();
+          for (let j = i + 1; j < pts.length; j++) {
+            const q = pts[j], d = Math.hypot(p.x - q.x, p.y - q.y);
+            if (d < 120) {
+              ctx.strokeStyle = `rgba(14,165,233,${(1 - d / 120) * 0.16})`;
+              ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(loop);
+      })();
+    })();
+
+    /* ── 5 Use Cases Data ── */
+    const CASES = {
+      pet: {
+        num: '01', tag: 'PET WATCH',
+        title: 'ペットの気になる動きを、すぐ知らせる。',
+        desc: '通知したい場面をふだんの言葉で書くだけ。動画ではなく状況の説明付きで届き、声かけやエアコン操作にも連携できます。',
+        camBar: 'LIVING · 14:32:08', camMode: 'PET WATCH',
+        img: 'assets/images/cam_pet.jpg',
+        svg: `
           <g class="bbox">
-            <path d="M160 100v-20h20M260 100v-20h-20M160 180v20h20M260 180v20h-20" fill="none" stroke="#22c55e" stroke-width="3.5"/>
-            <rect x="150" y="52" width="120" height="20" fill="#22c55e"/>
-            <text x="157" y="66" font-family="Inter,monospace" font-size="12" fill="#04210f">ID 023 verified</text>
+            <path d="M230 175v-14h22M410 175v-14h-22M230 295v14h22M410 295v14h-22" fill="none" stroke="#0ea5e9" stroke-width="3.5"/>
+            <rect x="230" y="138" width="168" height="22" fill="#0ea5e9"/>
+            <text x="238" y="154" font-family="Inter,monospace" font-size="13" fill="#fff">cat · on sofa 0.96</text>
           </g>
-        </g>
-      </svg>
-      <div class="log"><div>08:57 <i>IN</i> &nbsp;Staff 023</div><div>08:52 <i>IN</i> &nbsp;Staff 011</div><div>08:49 <i>IN</i> &nbsp;Staff 007</div></div>
-      <div class="notice"><div class="top"><span>CatchAIT</span><span>08:57</span></div><b>出勤を記録しました</b>Staff 023 · 08:57</div>
-    </div>
-  </div>
-</section>
+          <rect x="110" y="155" width="420" height="175" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="8 6"/>
+        `,
+        prompts: [
+          { q: '「猫がソファに上がったら声かけ＋通知して」', t: '14:32', title: '猫がソファに上がりました', body: '5秒以上滞在 → スピーカー声かけ実行', warn: false },
+          { q: '「ごはんを残して水飲み場に3時間来ない」', t: '17:15', title: '体調・行動の変化を検知', body: '水飲み場アクセス0回（経過3時間）', warn: true }
+        ]
+      },
+      parking: {
+        num: '02', tag: 'NO PARKING ZONE',
+        title: 'お客様を、不要な違反金から守る。',
+        desc: '店舗前の停車時間や監視員の接近をAIが検知し、違反になる前に店内スタッフへ即時通知。お客様の車両移動をスマートに案内できます。',
+        camBar: 'ENTRANCE · 16:05:41', camMode: 'PARKING GUARD',
+        img: 'assets/images/cam_parking.jpg',
+        svg: `
+          <rect x="110" y="150" width="420" height="150" fill="rgba(245,158,11,0.12)" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="8 6"/>
+          <g class="bbox">
+            <path d="M180 170v-16h24M460 170v-16h-24M180 285v16h24M460 285v16h-24" fill="none" stroke="#f59e0b" stroke-width="3.5"/>
+            <rect x="180" y="130" width="156" height="22" fill="#f59e0b"/>
+            <text x="188" y="146" font-family="Inter,monospace" font-size="13" fill="#0f1b2d">car · stopped 12:40</text>
+          </g>
+          <rect x="110" y="348" width="420" height="10" rx="5" fill="rgba(15,27,45,0.75)"/>
+          <rect x="110" y="348" width="340" height="10" rx="5" fill="#f59e0b"/>
+          <text x="110" y="338" font-family="Inter,monospace" font-size="13" fill="#fff">警告まで あと 02:20</text>
+        `,
+        prompts: [
+          { q: '「入口前に10分以上停車したら警告して」', t: '16:05', title: '入口前に停車して12分です', body: 'あと2分で警告ラインを超えます', warn: true },
+          { q: '「制服の巡回員が近づいたら即時知らせて」', t: '16:08', title: '巡回員接近アラート', body: '店舗前歩道に接近を検知（優先度: 高）', warn: true }
+        ]
+      },
+      attendance: {
+        num: '03', tag: 'SMART ATTENDANCE',
+        title: '顔を認証して、勤怠を自動で記録。',
+        desc: '出入口を通るだけで出退勤時刻を自動記帳。ICカードや手動打刻の手間・忘れをなくし、スプレッドシートやCSVへ出力します。',
+        camBar: 'ENTRANCE · 08:57:12', camMode: 'ATTENDANCE',
+        img: 'assets/images/cam_entrance.jpg',
+        logHtml: '<div>08:57 <i>IN</i> Staff 023</div><div>08:52 <i>IN</i> Staff 011</div><div>08:49 <i>IN</i> Staff 007</div>',
+        svg: `
+          <g class="bbox">
+            <path d="M250 110v-20h20M370 110v-20h-20M250 220v20h20M370 220v20h-20" fill="none" stroke="#22c55e" stroke-width="3.5"/>
+            <rect x="242" y="64" width="132" height="22" fill="#22c55e"/>
+            <text x="249" y="80" font-family="Inter,monospace" font-size="13" fill="#04210f">ID 023 verified</text>
+          </g>
+        `,
+        prompts: [
+          { q: '「登録スタッフが通ったら出退勤を自動記録」', t: '08:57', title: '出勤を記録しました', body: 'Staff 023 · Sheetsへ自動追記', warn: false },
+          { q: '「21時以降の残業・在室を管理者へ通知」', t: '21:15', title: '深夜在室リマインド', body: 'オフィス内に1名の在室を検知中', warn: true }
+        ]
+      },
+      store: {
+        num: '04', tag: 'RETAIL & SECURITY',
+        title: '1台で「来客通知」と「防犯警戒」を切替。',
+        desc: '営業中はレジ前への来客をバックヤードへ知らせ、閉店後は立ち入り禁止エリアへの侵入を即座にオーナーへ通知します。',
+        camBar: 'SHOP · 22:41:03', camMode: 'DUAL MODE',
+        img: 'assets/images/cam_store.jpg',
+        svg: `
+          <rect x="40" y="75" width="250" height="260" rx="8" fill="rgba(14,165,233,0.08)" stroke="#0ea5e9" stroke-dasharray="6 4"/>
+          <text x="165" y="102" fill="#38bdf8" font-size="13" text-anchor="middle" font-family="monospace">CUSTOMER AREA</text>
+          <rect x="340" y="75" width="260" height="260" rx="8" fill="rgba(244,63,94,0.12)" stroke="#f43f5e" stroke-dasharray="6 4"/>
+          <text x="470" y="102" fill="#fda4af" font-size="13" text-anchor="middle" font-family="monospace">STAFF ONLY</text>
+          <g class="bbox">
+            <path d="M405 140v-16h22M535 140v-16h-22M405 305v16h22M535 305v16h-22" fill="none" stroke="#f59e0b" stroke-width="3.5"/>
+            <rect x="405" y="108" width="136" height="22" fill="#f59e0b"/>
+            <text x="412" y="124" font-family="Inter,monospace" font-size="12" fill="#0f1b2d">intruder 0.96</text>
+          </g>
+        `,
+        prompts: [
+          { q: '「営業時間内にレジ前へ来客があれば通知」', t: '13:20', title: 'ご来客のお知らせ', body: '受付エリアにお客様が1名待機中', warn: false },
+          { q: '「閉店後に奥の保管庫へ入ったら即時警告」', t: '22:41', title: '立入禁止エリア進入検知', body: 'STAFF ONLY 侵入 → スナップショット送信', warn: true }
+        ]
+      },
+      family: {
+        num: '05', tag: 'FAMILY & CARE',
+        title: 'ご家族・高齢者の見守りも、プライバシー配慮で。',
+        desc: '映像を常時監視する必要はありません。「子どもが帰宅した」「転倒して1分動かない」など必要な瞬間だけをLINEへ届けます。',
+        camBar: 'HOME CARE · 15:32:05', camMode: 'PRIVACY FIRST',
+        img: 'assets/images/cam_family.jpg',
+        svg: `
+          <g class="bbox">
+            <path d="M250 120v-16h22M390 120v-16h-22M250 310v16h22M390 310v16h-22" fill="none" stroke="#22c55e" stroke-width="3.5"/>
+            <rect x="250" y="88" width="142" height="22" fill="#22c55e"/>
+            <text x="257" y="104" font-family="Inter,monospace" font-size="12" fill="#04210f">returned · 94%</text>
+          </g>
+        `,
+        prompts: [
+          { q: '「子どもが玄関から帰宅したら親へ通知」', t: '15:32', title: '帰宅のお知らせ', body: 'お子様が玄関から帰宅（映像保存なし）', warn: false },
+          { q: '「床に倒れたまま1分以上動かないとき通知」', t: '10:19', title: '転倒・長時間静止アラート', body: 'リビング床上で65秒間動きがありません', warn: true }
+        ]
+      }
+    };
 
-<!-- ════ しくみ ════ -->
-<section class="flow">
-  <div class="flow-inner">
-    <h2 class="rv">はじめ方は、3ステップ</h2>
-    <div class="steps">
-      <div class="step rv"><div class="dot">1</div><h3>カメラをつなぐ</h3><p>お手持ちのWebカメラやネットワークカメラで始められます。</p></div>
-      <div class="step rv"><div class="dot">2</div><h3>知りたいことを書く</h3><p>通知したい状況を、ふだんの言葉で入力します。</p></div>
-      <div class="step rv"><div class="dot">3</div><h3>スマホに届く</h3><p>状況の説明つきで、チャットやメールに通知します。</p></div>
-    </div>
-  </div>
-</section>
+    let activeKey = 'pet';
+    let activePrompt = 0;
 
-<!-- ════ CTA ════ -->
-<section class="cta">
-  <h2>あなたの現場に合わせて、つくります。</h2>
-  <p>まずは「何を知りたいか」をお聞かせください。</p>
-  <a class="btn-primary" href="hearing_form.html" target="_blank">いますぐ無料相談</a>
-  <p class="note">顔認証は、事前の同意と利用目的の明示を前提とします。映像の保存範囲・期間はご要望に合わせて設計します。</p>
-</section>
+    function renderCase() {
+      const c = CASES[activeKey];
+      const p = c.prompts[activePrompt];
+      document.getElementById('cNum').textContent = c.num;
+      document.getElementById('cTag').textContent = c.tag;
+      document.getElementById('cTitle').textContent = c.title;
+      document.getElementById('cDesc').textContent = c.desc;
+      document.getElementById('simCamBar').textContent = c.camBar;
+      document.getElementById('simCamMode').textContent = c.camMode;
+      document.getElementById('simPhoto').src = c.img;
+      document.getElementById('simSvg').innerHTML = c.svg;
 
-<footer>
-  &copy; 2024 CatchAIT / Catch8. ｜ <a href="index.html">ホームへ戻る</a> ｜ <a href="tokutei.html">特定商取引法に基づく表示</a>
-</footer>
+      const logEl = document.getElementById('simLogOverlay');
+      if (c.logHtml) { logEl.innerHTML = c.logHtml; logEl.style.display = 'block'; }
+      else { logEl.style.display = 'none'; }
 
-<script>
-  (function () {
-    const els = document.querySelectorAll('.rv');
-    if (!('IntersectionObserver' in window)) { els.forEach(e => e.classList.add('in')); return; }
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
-    }, { threshold: 0.18 });
-    els.forEach(e => io.observe(e));
-  })();
-</script>
+      const chips = document.getElementById('promptChips');
+      chips.innerHTML = '';
+      c.prompts.forEach((item, idx) => {
+        const b = document.createElement('button');
+        b.className = 'prompt-chip' + (idx === activePrompt ? ' active' : '');
+        b.innerHTML = `<span>${item.q}</span><small>${idx === activePrompt ? 'ACTIVE' : '切替'}</small>`;
+        b.onclick = () => { activePrompt = idx; renderCase(); };
+        chips.appendChild(b);
+      });
+
+      const notice = document.getElementById('simNotice');
+      notice.classList.toggle('warn', !!p.warn);
+      notice.style.animation = 'none'; notice.offsetHeight; notice.style.animation = '';
+      document.getElementById('simNTime').textContent = p.t;
+      document.getElementById('simNTitle').textContent = p.title;
+      document.getElementById('simNBody').textContent = p.body;
+    }
+
+    document.querySelectorAll('.case-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.case-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        activeKey = tab.dataset.case;
+        activePrompt = 0;
+        renderCase();
+      });
+    });
+
+    renderCase();
+  </script>
 </body>
 </html>

@@ -20,9 +20,22 @@
   .logbox { max-width: 640px; margin: 8px auto; background: #1a1a1a; padding: 8px; border-radius: 6px; font: 12px ui-monospace, monospace; white-space: pre-wrap; }
   #log { height: 150px; overflow-y: auto; }
   textarea { width: 100%; max-width: 640px; height: 90px; display: block; margin: 8px auto; background: #1a1a1a; color: #ccc; border: 1px solid #333; font: 12px ui-monospace, monospace; }
+  .poc-header { max-width: 640px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid #2a2a2a; }
+  .poc-header .brand { font-weight: 700; font-size: 16px; color: #fff; text-decoration: none; }
+  .poc-header .brand span { color: #0ea5e9; }
+  .poc-header .back { font-size: 13px; color: #94a3b8; text-decoration: none; }
+  .poc-header .back:hover { color: #fff; }
+  .poc-guide { max-width: 640px; margin: 0 auto 12px; font-size: 12px; color: #94a3b8; background: #1a1a1a; padding: 8px 12px; border-radius: 6px; border-left: 3px solid #0ea5e9; line-height: 1.6; }
 </style>
 </head>
 <body>
+<div class="poc-header">
+  <a href="../../index.html" class="brand">Catch<span>AIT</span> Person Detect PoC</a>
+  <a href="../../usecase_webcam.html" class="back">← ユースケースへ戻る</a>
+</div>
+<div class="poc-guide">
+  ブラウザ単体で動作する人物検知デモです。「開始」を押してカメラを許可すると、映像は外部送信せず端末内でリアルタイム検知を行います。
+</div>
 <div id="stage">
   <video id="v" playsinline muted autoplay></video>
   <canvas id="c"></canvas>

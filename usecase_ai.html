@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>AI・業務自動化のユースケース | CatchAIT</title>
+  <meta name="description" content="LINE連携日報、議事録・翻訳、Excel/Web自動化、機密データのローカル処理など、日常業務を劇的に快適にするAI活用事例。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0f1b2d;
+      --deep: #070d18;
+      --surface: #132238;
+      --blue: #3b82f6;
+      --teal: #0ea5e9;
+      --purple: #8b5cf6;
+      --ok: #22c55e;
+      --border: rgba(255, 255, 255, 0.1);
+      --font-sans: 'Noto Sans JP', 'Inter', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --header-h: 56px;
+    }
+
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: var(--font-sans);
+      background: var(--deep); color: #f1f5f9;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; }
+
+    /* ── Header ── */
+    header {
+      position: fixed; top: 0; left: 0; right: 0; height: var(--header-h); z-index: 100;
+      background: rgba(7, 13, 24, 0.88); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border); padding: 0 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-size: 1.15rem; font-weight: 700; color: #fff; letter-spacing: 0.04em; }
+    .logo span { color: var(--teal); }
+    nav { display: flex; align-items: center; gap: 10px; }
+    .nav-pill {
+      font-size: 0.72rem; color: #cbd5e1; padding: 4px 10px;
+      border-radius: 999px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04); white-space: nowrap;
+    }
+    .nav-pill:hover { border-color: var(--teal); color: #fff; }
+    .btn-cta {
+      background: var(--teal); color: #fff; padding: 5px 12px;
+      border-radius: 5px; font-weight: 600; font-size: 0.74rem; white-space: nowrap;
+    }
+    .btn-cta:hover { background: var(--blue); }
+
+    .hamburger {
+      width: 34px; height: 34px; background: transparent;
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; position: relative;
+    }
+    .hamburger span {
+      position: absolute; left: 50%; top: 50%; width: 16px; height: 1.5px;
+      background: #fff; transform: translate(-50%, -50%); transition: 0.2s;
+    }
+    .hamburger span:nth-child(1) { transform: translate(-50%, calc(-50% - 5px)); }
+    .hamburger span:nth-child(3) { transform: translate(-50%, calc(-50% + 5px)); }
+    .hamburger.open span:nth-child(1) { transform: translate(-50%, -50%) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translate(-50%, -50%) rotate(-45deg); }
+
+    .mobile-drawer {
+      position: fixed; top: var(--header-h); left: 0; right: 0;
+      background: rgba(10, 17, 30, 0.98); border-bottom: 1px solid var(--border);
+      padding: 6px 20px 14px; display: flex; flex-direction: column;
+      transform: translateY(-120%); opacity: 0; transition: 0.25s; z-index: 99; pointer-events: none;
+    }
+    .mobile-drawer.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .mobile-drawer a { padding: 10px 6px; font-size: 0.85rem; color: #e2e8f0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .mobile-drawer a:last-child { border-bottom: none; }
+    .mobile-drawer a.active { color: var(--teal); font-weight: 600; }
+
+    /* ── Deck & Slides (1画面 = 100dvh) ── */
+    .deck { height: 100dvh; overflow-y: auto; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+    .slide {
+      height: 100dvh; width: 100%; scroll-snap-align: start; scroll-snap-stop: always;
+      padding: calc(var(--header-h) + 14px) 38px 20px 24px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; overflow: hidden;
+    }
+    .slide-inner {
+      width: 100%; max-width: 1280px; height: 100%; display: flex; flex-direction: column; justify-content: center;
+      opacity: 0; transform: translateY(20px) scale(0.985); filter: blur(4px);
+      transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+                  filter 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .slide.is-active .slide-inner { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    @media (prefers-reduced-motion: reduce) {
+      .slide-inner { opacity: 1; transform: none; filter: none; transition: none; }
+    }
+
+    .slide-dots {
+      position: fixed; right: 12px; top: 50%; transform: translateY(-50%);
+      z-index: 90; display: flex; flex-direction: column; gap: 10px;
+    }
+    .slide-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4);
+      padding: 0; transition: all 0.2s;
+    }
+    .slide-dot.active { background: var(--teal); border-color: var(--teal); transform: scale(1.25); }
+    .next-hint {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      font-family: var(--font-mono); font-size: 0.65rem; color: rgba(255,255,255,0.45);
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      padding: 2px 12px; border-radius: 999px;
+    }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--font-mono); font-size: 0.68rem; color: var(--teal);
+      letter-spacing: 0.14em; text-transform: uppercase;
+      border: 1px solid rgba(14,165,233,0.4); padding: 2px 10px; border-radius: 999px; margin-bottom: 10px;
+    }
+    .btn-primary {
+      background: var(--teal); color: #fff; padding: 8px 16px; border-radius: 6px;
+      border: none; font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary:hover { background: var(--blue); }
+    .btn-ghost {
+      border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 8px 14px;
+      border-radius: 6px; font-size: 0.78rem; background: rgba(255,255,255,0.04);
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    /* ── Slide 1: Hero ── */
+    .s-hero {
+      background: radial-gradient(ellipse 75% 65% at 75% 40%, rgba(139,92,246,0.2), transparent 70%),
+                  linear-gradient(135deg, #070d18 0%, #0f1b2d 100%);
+    }
+    .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 24px; align-items: center; }
+    .hero-left h1 { font-size: clamp(1.55rem, 3.6vw, 2.65rem); line-height: 1.28; font-weight: 700; margin-bottom: 12px; }
+    .hero-left h1 em { font-style: normal; color: var(--teal); }
+    .hero-lead { font-size: clamp(0.88rem, 1.55vw, 1.04rem); color: #cbd5e1; line-height: 1.65; margin-bottom: 16px; }
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .workflow-card {
+      background: rgba(19, 34, 56, 0.7);
+      border: 1px solid rgba(14,165,233,0.3);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .wf-head {
+      display: flex; justify-content: space-between; font-family: var(--font-mono);
+      font-size: 0.68rem; color: #94a3b8; border-bottom: 1px solid var(--border); padding-bottom: 8px;
+    }
+    .wf-step {
+      background: rgba(7, 13, 24, 0.75); border: 1px solid var(--border);
+      border-radius: 9px; padding: 9px 12px;
+    }
+    .wf-step small { display: block; font-family: var(--font-mono); font-size: 0.62rem; color: var(--teal); margin-bottom: 2px; }
+    .wf-step p { font-size: 0.76rem; color: #e2e8f0; line-height: 1.45; }
+    .wf-step.out { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.08); }
+    .wf-step.out small { color: var(--ok); }
+
+    /* ── Slide 2: 4大 AI/自動化ユースケース ── */
+    .s-cases { background: linear-gradient(180deg, #0a1322 0%, #0f1b2d 100%); border-top: 1px solid var(--border); }
+    .case-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; scrollbar-width: none; }
+    .case-tabs::-webkit-scrollbar { display: none; }
+    .case-tab {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+      color: #94a3b8; padding: 7px 14px; border-radius: 999px;
+      font-size: 0.84rem; font-weight: 500; white-space: nowrap; transition: 0.2s;
+    }
+    .case-tab.active { background: rgba(14,165,233,0.2); border-color: var(--teal); color: #fff; font-weight: 600; }
+    .case-tab span { font-family: var(--font-mono); color: var(--teal); margin-right: 5px; font-size: 0.76rem; }
+
+    .case-stage {
+      display: grid; grid-template-columns: 0.95fr 1.05fr; gap: 28px; align-items: center;
+      background: rgba(19, 34, 56, 0.55); border: 1px solid var(--border);
+      border-radius: 14px; padding: 22px 26px;
+    }
+    .case-num { font-family: var(--font-mono); font-size: 1.65rem; font-weight: 700; color: var(--teal); line-height: 1; }
+    .case-tag {
+      font-family: var(--font-mono); font-size: 0.72rem; color: #c4b5fd;
+      background: rgba(139,92,246,0.18); padding: 3px 10px; border-radius: 4px;
+    }
+    .case-left h2 { font-size: clamp(1.22rem, 2.4vw, 1.65rem); line-height: 1.35; margin: 8px 0; }
+    .case-left p { font-size: clamp(0.84rem, 1.45vw, 0.96rem); color: #cbd5e1; line-height: 1.65; margin-bottom: 14px; }
+    .prompt-chips { display: flex; flex-direction: column; gap: 8px; }
+    .prompt-chip {
+      text-align: left; padding: 9px 13px; border-radius: 8px;
+      background: rgba(7,13,24,0.65); border: 1px solid var(--border);
+      color: #cbd5e1; font-size: 0.84rem; display: flex; justify-content: space-between; align-items: center;
+    }
+    .prompt-chip.active { background: rgba(14,165,233,0.16); border-color: var(--teal); color: #fff; }
+    .prompt-chip small { font-family: var(--font-mono); font-size: 0.72rem; color: var(--teal); }
+
+    .io-preview {
+      background: #070c16; border: 1px solid rgba(14,165,233,0.28);
+      border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .io-box {
+      border-radius: 8px; padding: 12px 14px; font-size: 0.86rem; line-height: 1.6;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    }
+    .io-box.output {
+      background: rgba(14,165,233,0.1); border-color: rgba(14,165,233,0.35);
+      animation: fadePop 0.3s ease;
+    }
+    @keyframes fadePop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .io-label {
+      font-family: var(--font-mono); font-size: 0.64rem; font-weight: 600;
+      color: #94a3b8; margin-bottom: 4px; display: flex; justify-content: space-between;
+    }
+    .io-box.output .io-label { color: var(--teal); }
+
+    /* ── Slide 3: 導入＆相談 ── */
+    .s-cta {
+      background: radial-gradient(ellipse 70% 70% at 50% 20%, rgba(14,165,233,0.16), transparent 70%), #070d18;
+      border-top: 1px solid var(--border);
+    }
+    .cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; }
+    .benefit-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 16px; }
+    .benefit-item {
+      background: rgba(19, 34, 56, 0.55); border: 1px solid var(--border);
+      border-radius: 9px; padding: 9px 12px; font-size: 0.78rem; color: #e2e8f0;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .benefit-item b { color: var(--teal); font-family: var(--font-mono); font-size: 0.74rem; }
+    .consult-card {
+      background: rgba(19, 34, 56, 0.7); border: 1px solid rgba(14,165,233,0.35);
+      border-radius: 14px; padding: 20px; text-align: center;
+    }
+    .consult-card h3 { font-size: 1.08rem; margin-bottom: 8px; }
+    .consult-card p { font-size: 0.8rem; color: #cbd5e1; margin-bottom: 16px; line-height: 1.6; }
+    .mini-footer { margin-top: 12px; font-size: 0.68rem; color: #64748b; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── スマホ縦 / 横 対応 ── */
+    @media (max-width: 680px) and (orientation: portrait) {
+      .slide { padding: calc(var(--header-h) + 10px) 34px 24px 14px; }
+      .hero-grid, .case-stage, .cta-grid { grid-template-columns: 1fr; gap: 12px; }
+      .nav-pill { display: none; }
+    }
+    @media (max-height: 460px) and (orientation: landscape) {
+      :root { --header-h: 46px; }
+      .slide { padding: calc(var(--header-h) + 6px) 38px 10px 18px; }
+      .hero-left h1 { font-size: 1.45rem; margin-bottom: 6px; }
+      .hero-lead { font-size: 0.8rem; margin-bottom: 10px; line-height: 1.5; }
+      .workflow-card { padding: 10px 14px; gap: 7px; }
+      .wf-step { padding: 7px 10px; }
+      .case-stage { padding: 12px 16px; gap: 16px; }
+      .case-left h2 { font-size: 1.12rem; }
+      .case-left p { font-size: 0.78rem; margin-bottom: 8px; line-height: 1.45; }
+      .prompt-chip { padding: 6px 10px; font-size: 0.76rem; }
+      .io-preview { padding: 10px; gap: 8px; }
+      .io-box { padding: 8px 10px; font-size: 0.76rem; }
+      .benefit-item { padding: 6px 10px; font-size: 0.72rem; }
+      .consult-card { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="logo">Catch<span>AIT</span></a>
+    <nav>
+      <a class="nav-pill" href="usecase_webcam.html">Webカメラ検知事例 →</a>
+      <a class="btn-cta" href="hearing_form.html" target="_blank">無料相談</a>
+      <button class="hamburger" id="hamburger" type="button" aria-label="メニュー" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </header>
+
+  <div class="mobile-drawer" id="mobileDrawer">
+    <a href="index.html">ホーム</a>
+    <a href="usecase_webcam.html">Webカメラ検知ユースケース</a>
+    <a href="usecase_ai.html" class="active">AI・業務自動化ユースケース</a>
+    <a href="Apps/objDetectionPoc/index.html" target="_blank">人物検知ブラウザデモ (PoC)</a>
+    <a href="aboutUS.html">About Us</a>
+    <a href="hearing_form.html">無料相談・ヒアリングシート</a>
+  </div>
+
+  <div class="slide-dots" aria-label="画面切り替え">
+    <button class="slide-dot active" data-slide="0" aria-label="概要"></button>
+    <button class="slide-dot" data-slide="1" aria-label="4つのユースケース"></button>
+    <button class="slide-dot" data-slide="2" aria-label="相談・導線"></button>
+  </div>
+
+  <main class="deck" id="deck">
+
+    <!-- ════ SLIDE 1: HERO ════ -->
+    <section class="slide s-hero is-active" data-idx="0">
+      <div class="slide-inner">
+        <div class="hero-grid">
+          <div class="hero-left">
+            <span class="eyebrow">Use Case · AI &amp; Automation</span>
+            <h1>いつものツールにAIを足して、<br /><em>日々の手間を</em>ゼロに。</h1>
+            <p class="hero-lead">
+              LINE・Excel・メール・Web入力など、今お使いのツールをそのまま活かして自動化。機密データの安全なローカル処理にも対応します。
+            </p>
+            <div class="hero-actions">
+              <button class="btn-primary" type="button" onclick="goSlide(1)">4つの事例を見る ↓</button>
+              <a class="btn-ghost" href="usecase_webcam.html">Webカメラ事例 ↗</a>
+            </div>
+          </div>
+
+          <div class="workflow-card" aria-label="AI業務自動化イメージ">
+            <div class="wf-head"><span>WORKFLOW · EXAMPLE</span><span style="color:var(--ok);">● AUTO RUNNING</span></div>
+            <div class="wf-step">
+              <small>01 INPUT（普段通りの操作）</small>
+              <p>LINEで「今日〇〇様と商談、来週見積り提出」と一言送信</p>
+            </div>
+            <div class="wf-step">
+              <small>02 AI PROCESS（自動整形・抽出）</small>
+              <p>日付・顧客名・要点・次回TODOをAIが構造化し、社内書式へ変換</p>
+            </div>
+            <div class="wf-step out">
+              <small>03 OUTPUT（自動記録＆リマインド）</small>
+              <p>日報シートへ自動記帳 ＋ 来週の期日に合わせて自動リマインド通知</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="next-hint" type="button" onclick="goSlide(1)">SWIPE / NEXT ▾</button>
+    </section>
+
+    <!-- ════ SLIDE 2: 4つのユースケース ════ -->
+    <section class="slide s-cases" data-idx="1">
+      <div class="slide-inner">
+        <div class="case-tabs" role="tablist">
+          <button class="case-tab active" data-case="line"><span>01</span>LINE×AI日報</button>
+          <button class="case-tab" data-case="minutes"><span>02</span>議事録・翻訳</button>
+          <button class="case-tab" data-case="excel"><span>03</span>Excel/Web自動化</button>
+          <button class="case-tab" data-case="secure"><span>04</span>機密データ処理</button>
+        </div>
+
+        <div class="case-stage">
+          <div class="case-left">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span class="case-num" id="aNum">01</span>
+              <span class="case-tag" id="aTag">LINE + AI</span>
+            </div>
+            <h2 id="aTitle">LINEにメモを送るだけで、業務日報と顧客管理が完了。</h2>
+            <p id="aDesc">新しいアプリを覚える必要はありません。いつも使っているLINEに音声や短い文章を送るだけでAIが整理・記帳します。</p>
+            <div class="prompt-chips" id="aChips"></div>
+          </div>
+
+          <div class="io-preview">
+            <div class="io-box">
+              <div class="io-label"><span>INPUT / いつもの操作</span><span id="aInMeta">LINE</span></div>
+              <div id="aInBody">「14時 鈴木商事 佐藤様 見積書OK 来週火曜に契約書送る」</div>
+            </div>
+            <div class="io-box output" id="aOutBox">
+              <div class="io-label"><span>AI OUTPUT / 自動生成結果</span><span id="aOutMeta">Sheetsへ自動記録</span></div>
+              <div id="aOutBody">【商談日報】鈴木商事（佐藤様）<br />・結果：見積承認<br />・TODO：来週火曜 契約書送付（カレンダー登録済）</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="next-hint" type="button" onclick="goSlide(2)">導入メリット・相談 ▾</button>
+    </section>
+
+    <!-- ════ SLIDE 3: 特徴・無料相談 ════ -->
+    <section class="slide s-cta" data-idx="2">
+      <div class="slide-inner">
+        <div class="cta-grid">
+          <div>
+            <span class="eyebrow">CatchAIT Approach</span>
+            <h2 style="font-size:clamp(1.25rem,2.6vw,1.8rem);line-height:1.3;">過去の資産を活かし、<br />低工数・低コストで実現。</h2>
+            <div class="benefit-list">
+              <div class="benefit-item"><b>01</b>既存のExcel / LINE / Google Workspaceをそのまま活用</div>
+              <div class="benefit-item"><b>02</b>機密データを外部に出さないローカル構成にも対応</div>
+              <div class="benefit-item"><b>03</b>「自分で作れるようになりたい」伴走プランも選択可能</div>
+            </div>
+          </div>
+
+          <div class="consult-card">
+            <h3>まずは30分、無料でご相談ください</h3>
+            <p>「この手作業を自動化できる？」「自分の業務でAIをどう使える？」など、現状のヒアリングから最適なツールをご提案します。</p>
+            <div class="hero-actions" style="justify-content:center;">
+              <a class="btn-primary" href="hearing_form.html" target="_blank">いますぐ無料相談</a>
+              <a class="btn-ghost" href="usecase_webcam.html">Webカメラ事例へ</a>
+            </div>
+            <div class="mini-footer">
+              <span>&copy; 2026 CatchAIT</span>
+              <a href="index.html">ホームへ戻る</a>
+              <a href="tokutei.html">特定商取引法に基づく表示</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    (function () {
+      const btn = document.getElementById('hamburger');
+      const drawer = document.getElementById('mobileDrawer');
+      const close = () => { btn.classList.remove('open'); drawer.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
+      btn.addEventListener('click', () => {
+        const open = btn.classList.toggle('open');
+        drawer.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', String(open));
+      });
+      drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+      document.addEventListener('click', e => { if (drawer.classList.contains('open') && !drawer.contains(e.target) && !btn.contains(e.target)) close(); });
+    })();
+
+    const deck = document.getElementById('deck');
+    const dots = document.querySelectorAll('.slide-dot');
+    const slides = document.querySelectorAll('.slide');
+    function goSlide(idx) { slides[idx]?.scrollIntoView({ behavior: 'smooth' }); }
+    dots.forEach(d => d.addEventListener('click', () => goSlide(Number(d.dataset.slide))));
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('is-active');
+          const i = Number(en.target.dataset.idx);
+          dots.forEach((d, idx) => d.classList.toggle('active', idx === i));
+        }
+      });
+    }, { root: deck, threshold: 0.45 });
+    slides.forEach(s => obs.observe(s));
+
+    const AI_CASES = {
+      line: {
+        num: '01', tag: 'LINE + AI',
+        title: 'LINEにメモを送るだけで、業務日報と顧客管理が完了。',
+        desc: '新しいアプリを覚える必要はありません。いつも使っているLINEに音声や短い文章を送るだけでAIが整理・記帳します。',
+        items: [
+          {
+            label: '商談メモ → 日報・TODO自動作成',
+            inMeta: 'LINE テキスト',
+            inBody: '「14時 鈴木商事 佐藤様 見積書OK 来週火曜に契約書送る」',
+            outMeta: 'Sheetsへ自動記帳',
+            outBody: '【商談日報】鈴木商事（佐藤様）<br>・結果：見積承認<br>・TODO：来週火曜 契約書送付（リマインド登録済）'
+          },
+          {
+            label: 'レシート写真 → 経費台帳へ自動転記',
+            inMeta: 'LINE 画像送信',
+            inBody: '[カメラで撮影した領収書画像を送信]',
+            outMeta: 'OCR + AI仕訳完了',
+            outBody: '日付: 2026/11/17 ｜ 金額: ¥3,480 ｜ 勘定科目: 消耗品費<br>→ 経費管理スプレッドシートへ追記しました。'
+          }
+        ]
+      },
+      minutes: {
+        num: '02', tag: 'MEETING & TRANSLATION',
+        title: '会議の議事録と多言語対応をリアルタイム自動化。',
+        desc: '打ち合わせの音声やチャットから決定事項・ネクストアクションを即座に抽出。海外取引先との多言語やり取りも自然に変換します。',
+        items: [
+          {
+            label: '会議音声 → 要点・TODO議事録生成',
+            inMeta: '音声 / テキスト文字起こし',
+            inBody: '（45分の打ち合わせ音声データ）',
+            outMeta: '要約完了 (15秒)',
+            outBody: '■ 決定事項：12月より新プラン開始<br>■ 宿題：田中（LP修正 11/20迄）、佐藤（告知文作成）'
+          },
+          {
+            label: '日本語メモ → 丁寧な英語ビジネスメール化',
+            inMeta: '日本語の箇条書き',
+            inBody: '「納期3日遅れるお詫び。金曜の朝には必ず送ります」',
+            outMeta: '英文メール生成',
+            outBody: 'Dear John, Thank you for your patience. Due to a slight delay, we will deliver the items by Friday morning...'
+          }
+        ]
+      },
+      excel: {
+        num: '03', tag: 'PC / VBA / WEB AUTO',
+        title: 'Excel集計・書類作成・Web転記をワンクリック自動化。',
+        desc: '毎日・毎月の定型PC作業（Excel/Word/OutlookやWeb画面の入出力）をVBAや自動化ツールに置き換え、ミスと残業を削減します。',
+        items: [
+          {
+            label: '複数CSV → 請求書PDF一括生成＆メール下書き',
+            inMeta: '月次売上CSV (50社分)',
+            inBody: '毎月手作業でExcelにコピペしてPDF化・メール添付していた作業',
+            outMeta: '処理時間: 2時間 → 15秒',
+            outBody: '50社分の請求書PDFを生成し、Outlook下書きフォルダへ宛先・件名付きで自動セット完了。'
+          },
+          {
+            label: 'Web在庫・価格情報の自動チェック＆通知',
+            inMeta: '対象Webページ (定期巡回)',
+            inBody: '毎日手動で開いて確認していた仕入先サイトや予約状況',
+            outMeta: '差分検知時のみ通知',
+            outBody: '「商品Aの在庫が復活しました（残り5点）」を即座にチャット通知。'
+          }
+        ]
+      },
+      secure: {
+        num: '04', tag: 'LOCAL & SECURE AI',
+        title: 'お金や顧客の機密データも、見せずに安全に効率化。',
+        desc: '「外部クラウドに機密データを送りたくない」「知り合いに見せづらくて相談できない」というお悩みにも、ローカル完結設計でお応えします。',
+        items: [
+          {
+            label: '外部通信なし・PC内完結でのデータ分析',
+            inMeta: '社内PCローカル環境',
+            inBody: '売上台帳・給与データ・顧客リスト（外部送信NG）',
+            outMeta: 'オフラインAI / ローカル処理',
+            outBody: 'インターネットへ一切データを送信せず、PC内のプログラムだけで集計・異常値検出・レポート出力を実行。'
+          },
+          {
+            label: 'ダミーデータ検証による安全開発プロセス',
+            inMeta: '相談・開発フロー',
+            inBody: '実データはお預かりせず、項目定義とサンプル形式だけでツールを構築',
+            outMeta: '納品後にご自身のPCで実行',
+            outBody: '実データはお客様の手元から一切出さずに、安心・安全な自動化環境を導入できます。'
+          }
+        ]
+      }
+    };
+
+    let aKey = 'line';
+    let aIdx = 0;
+
+    function renderAI() {
+      const c = AI_CASES[aKey];
+      const item = c.items[aIdx];
+      document.getElementById('aNum').textContent = c.num;
+      document.getElementById('aTag').textContent = c.tag;
+      document.getElementById('aTitle').textContent = c.title;
+      document.getElementById('aDesc').textContent = c.desc;
+
+      const chips = document.getElementById('aChips');
+      chips.innerHTML = '';
+      c.items.forEach((it, idx) => {
+        const b = document.createElement('button');
+        b.className = 'prompt-chip' + (idx === aIdx ? ' active' : '');
+        b.innerHTML = `<span>${it.label}</span><small>${idx === aIdx ? 'ACTIVE' : '切替'}</small>`;
+        b.onclick = () => { aIdx = idx; renderAI(); };
+        chips.appendChild(b);
+      });
+
+      document.getElementById('aInMeta').textContent = item.inMeta;
+      document.getElementById('aInBody').innerHTML = item.inBody;
+      const outBox = document.getElementById('aOutBox');
+      outBox.style.animation = 'none'; outBox.offsetHeight; outBox.style.animation = '';
+      document.getElementById('aOutMeta').textContent = item.outMeta;
+      document.getElementById('aOutBody').innerHTML = item.outBody;
+    }
+
+    document.querySelectorAll('.case-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.case-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        aKey = tab.dataset.case;
+        aIdx = 0;
+        renderAI();
+      });
+    });
+
+    renderAI();
+  </script>
+</body>
+</html>

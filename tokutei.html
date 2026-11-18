@@ -12,27 +12,27 @@
     html { scroll-behavior: smooth; }
     body {
       font-family: 'Noto Sans JP', 'Inter', sans-serif;
-      color: #222;
-      background: #f4f7fb;
+      color: #f1f5f9;
+      background: #070d18;
       line-height: 1.7;
     }
     a { text-decoration: none; color: inherit; }
 
     :root {
-      --navy:  #0f1b2d;
+      --navy:  #070d18;
       --teal:  #0ea5e9;
-      --dark:  #1a2a3a;
-      --gray:  #6b7280;
-      --light: #f4f7fb;
-      --white: #ffffff;
-      --border: #e5e7eb;
+      --dark:  #f1f5f9;
+      --gray:  #94a3b8;
+      --light: #0f1b2d;
+      --white: #132238;
+      --border: rgba(255, 255, 255, 0.1);
     }
 
     /* Header */
     header {
       background: var(--navy);
-      padding: 0 40px;
-      height: 64px;
+      padding: 0 24px;
+      height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -72,8 +72,9 @@
 
     .card {
       background: var(--white);
+      border: 1px solid var(--border);
       border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.35);
       overflow: hidden;
       margin-bottom: 16px;
     }
@@ -100,7 +101,7 @@
     td {
       padding: 20px 24px;
       font-size: 0.9rem;
-      color: #444;
+      color: #cbd5e1;
       line-height: 1.8;
       vertical-align: top;
     }
@@ -111,12 +112,12 @@
     td a:hover { opacity: 0.8; }
 
     .note {
-      background: #fff8e1;
+      background: rgba(245, 158, 11, 0.1);
       border-left: 3px solid #f59e0b;
       border-radius: 0 6px 6px 0;
       padding: 14px 18px;
       font-size: 0.82rem;
-      color: #78500a;
+      color: #fde68a;
       margin-top: 24px;
       line-height: 1.8;
     }
@@ -230,7 +231,7 @@
 
 <!-- Footer -->
 <footer>
-  <p>&copy; 2024 CatchAIT / Catch8. All rights reserved. ｜ <a href="index.html">ホームへ戻る</a></p>
+  <p>&copy; 2026 CatchAIT / Catch8. All rights reserved. ｜ <a href="index.html">ホームへ戻る</a></p>
 </footer>
 
 </body>

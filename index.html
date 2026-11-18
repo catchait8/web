@@ -2,934 +2,695 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ホーム | Catchait</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>ホーム | CatchAIT</title>
+  <meta name="description" content="個人・個人事業主・小規模企業向けに、AI・IT環境の最適化と自動化ツール・伴走サポートを提供する CatchAIT（Catch8）。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
-    /* ── Reset & Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: 'Noto Sans JP', 'Inter', sans-serif;
-      color: #222;
-      background: #fff;
-      line-height: 1.7;
-    }
-    a { text-decoration: none; color: inherit; }
-    img { max-width: 100%; display: block; }
-
-    /* ── Variables ── */
     :root {
-      --navy:   #0f1b2d;
-      --dark:   #1a2a3a;
+      --navy:   #070d18;
+      --dark:   #0f1b2d;
+      --surface:#132238;
       --blue:   #2563eb;
       --blue-l: #3b82f6;
       --teal:   #0ea5e9;
-      --light:  #f4f7fb;
-      --gray:   #6b7280;
-      --border: #e5e7eb;
-      --white:  #ffffff;
+      --ok:     #22c55e;
+      --amber:  #f59e0b;
+      --gray:   #94a3b8;
+      --border: rgba(255, 255, 255, 0.1);
+      --font-sans: 'Noto Sans JP', 'Inter', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+      --header-h: 56px;
     }
 
-    /* ── Header / Nav ── */
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font-sans);
+      color: #f1f5f9;
+      background: var(--navy);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { font-family: inherit; cursor: pointer; }
+    img { max-width: 100%; display: block; }
+
+    /* ── Unified Fixed Header (usecaseページと完全統一) ── */
     header {
       position: fixed;
       top: 0; left: 0; right: 0;
+      height: var(--header-h);
       z-index: 100;
-      background: rgba(15, 27, 45, 0.92);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      padding: 0 40px;
-      height: 64px;
+      background: rgba(7, 13, 24, 0.88);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: 0.04em;
-    }
+    .logo { font-size: 1.25rem; font-weight: 700; color: #fff; letter-spacing: 0.04em; }
     .logo span { color: var(--teal); }
-    nav { display: flex; align-items: center; gap: 14px; }
-    /* Inline nav links are unified into the hamburger drawer on every viewport */
-    nav .nav-links { display: none !important; }
-    nav a {
-      color: rgba(255,255,255,0.8);
-      font-size: 0.875rem;
-      font-weight: 400;
-      transition: color 0.2s;
+    nav { display: flex; align-items: center; gap: 10px; }
+    .nav-pill {
+      font-size: 0.76rem; color: #cbd5e1; padding: 5px 12px;
+      border-radius: 999px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04); white-space: nowrap;
+      transition: 0.2s;
     }
-    nav a:hover { color: #fff; }
+    .nav-pill:hover { border-color: var(--teal); color: #fff; }
     .btn-cta {
-      background: var(--teal);
-      color: #fff !important;
-      padding: 8px 20px;
-      border-radius: 4px;
-      font-weight: 500;
-      font-size: 0.875rem;
-      transition: background 0.2s, transform 0.1s;
+      background: var(--teal); color: #fff; padding: 6px 14px;
+      border-radius: 5px; font-weight: 600; font-size: 0.78rem;
+      white-space: nowrap; transition: background 0.2s;
     }
-    .btn-cta:hover { background: var(--blue-l); transform: translateY(-1px); }
+    .btn-cta:hover { background: var(--blue-l); }
 
-    /* ── Hamburger button (always shown on every screen size) ── */
     .hamburger {
-      display: block;
-      width: 40px; height: 40px;
-      background: transparent;
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 6px;
-      cursor: pointer;
-      padding: 0;
+      width: 36px; height: 36px; background: transparent;
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 6px;
       position: relative;
-      transition: border-color 0.2s, background 0.2s;
     }
-    .hamburger:hover { border-color: rgba(255,255,255,0.5); background: rgba(255,255,255,0.05); }
     .hamburger span {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      width: 18px;
-      height: 1.5px;
-      background: #fff;
-      border-radius: 2px;
-      transform: translate(-50%, -50%);
-      transition: transform 0.25s, opacity 0.2s, top 0.25s;
+      position: absolute; left: 50%; top: 50%;
+      width: 16px; height: 1.5px; background: #fff;
+      transform: translate(-50%, -50%); transition: 0.2s;
     }
-    .hamburger span:nth-child(1) { transform: translate(-50%, calc(-50% - 6px)); }
-    .hamburger span:nth-child(3) { transform: translate(-50%, calc(-50% + 6px)); }
+    .hamburger span:nth-child(1) { transform: translate(-50%, calc(-50% - 5px)); }
+    .hamburger span:nth-child(3) { transform: translate(-50%, calc(-50% + 5px)); }
     .hamburger.open span:nth-child(1) { transform: translate(-50%, -50%) rotate(45deg); }
     .hamburger.open span:nth-child(2) { opacity: 0; }
     .hamburger.open span:nth-child(3) { transform: translate(-50%, -50%) rotate(-45deg); }
 
-    /* ── Mobile drawer ── */
     .mobile-drawer {
-      position: fixed;
-      top: 64px; left: 0; right: 0;
-      background: rgba(15, 27, 45, 0.97);
-      backdrop-filter: blur(10px);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      padding: 8px 24px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      transform: translateY(-110%);
-      opacity: 0;
-      transition: transform 0.3s ease, opacity 0.25s ease;
-      z-index: 99;
-      pointer-events: none;
+      position: fixed; top: var(--header-h); left: 0; right: 0;
+      background: rgba(10, 17, 30, 0.98); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border); padding: 6px 24px 16px;
+      display: flex; flex-direction: column;
+      transform: translateY(-120%); opacity: 0; transition: 0.25s;
+      z-index: 99; pointer-events: none;
     }
     .mobile-drawer.open { transform: translateY(0); opacity: 1; pointer-events: auto; }
     .mobile-drawer a {
-      color: rgba(255,255,255,0.85);
-      font-size: 0.95rem;
-      font-weight: 400;
-      padding: 14px 8px;
+      padding: 11px 6px; font-size: 0.9rem; color: #e2e8f0;
       border-bottom: 1px solid rgba(255,255,255,0.06);
-      transition: color 0.15s, padding-left 0.15s;
     }
     .mobile-drawer a:last-child { border-bottom: none; }
-    .mobile-drawer a:hover { color: var(--teal); padding-left: 14px; }
+    .mobile-drawer a:hover, .mobile-drawer a.active { color: var(--teal); font-weight: 600; }
 
-    /* ── Hero ── */
-    .hero {
-      position: relative;
-      min-height: 100vh;
+    /* ── Fullscreen Slide Deck ── */
+    .deck {
+      height: 100dvh;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+    .slide {
+      height: 100dvh;
+      width: 100%;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      padding: calc(var(--header-h) + 14px) 42px 20px 28px;
       display: flex;
       align-items: center;
       justify-content: center;
-      text-align: center;
-      overflow: hidden;
-      background: var(--navy);
-    }
-    /* Animated gradient background (replacing video) */
-    .hero::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg,
-        #0f1b2d 0%,
-        #0d2847 35%,
-        #0a1f3c 55%,
-        #162033 75%,
-        #0f1b2d 100%);
-      animation: bgShift 12s ease-in-out infinite alternate;
-    }
-    .hero::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse 80% 60% at 50% 40%,
-        rgba(14, 165, 233, 0.18) 0%,
-        transparent 70%);
-    }
-    @keyframes bgShift {
-      0%   { filter: hue-rotate(0deg) brightness(1); }
-      100% { filter: hue-rotate(15deg) brightness(1.08); }
-    }
-    .hero-content {
       position: relative;
-      z-index: 2;
-      max-width: 820px;
-      padding: 0 24px;
+      overflow: hidden;
     }
-    .hero-eyebrow {
-      display: inline-block;
-      font-size: 0.8rem;
-      font-weight: 500;
-      letter-spacing: 0.2em;
-      color: var(--teal);
-      text-transform: uppercase;
-      margin-bottom: 20px;
-      border: 1px solid rgba(14,165,233,0.4);
-      padding: 4px 14px;
-      border-radius: 20px;
-    }
-    .hero h1 {
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.4;
-      margin-bottom: 28px;
-      letter-spacing: 0.02em;
-    }
-    .hero h1 em { color: var(--teal); font-style: normal; }
-    .hero p {
-      font-size: 1rem;
-      color: rgba(255,255,255,0.7);
-      max-width: 620px;
-      margin: 0 auto 40px;
-      line-height: 1.85;
-    }
-    .hero-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
-    .btn-primary {
-      background: var(--teal);
-      color: #fff;
-      padding: 14px 32px;
-      border-radius: 5px;
-      font-weight: 600;
-      font-size: 0.95rem;
-      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-      box-shadow: 0 4px 20px rgba(14,165,233,0.35);
-    }
-    .btn-primary:hover {
-      background: var(--blue-l);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 28px rgba(14,165,233,0.45);
-    }
-    .btn-secondary {
-      border: 1.5px solid rgba(255,255,255,0.4);
-      color: rgba(255,255,255,0.9);
-      padding: 14px 32px;
-      border-radius: 5px;
-      font-weight: 500;
-      font-size: 0.95rem;
-      transition: border-color 0.2s, background 0.2s;
-    }
-    .btn-secondary:hover {
-      border-color: rgba(255,255,255,0.8);
-      background: rgba(255,255,255,0.06);
-    }
-    .scroll-hint {
-      position: absolute;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2;
+    .slide-inner {
+      width: 100%;
+      max-width: 1240px;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      color: rgba(255,255,255,0.4);
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      animation: bounce 2s infinite;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(22px) scale(0.985);
+      filter: blur(4px);
+      transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                  filter 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
-    .scroll-hint::after {
-      content: '';
-      width: 1px;
-      height: 40px;
-      background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent);
+    .slide.is-active .slide-inner {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
     }
-    @keyframes bounce {
-      0%,100% { transform: translateX(-50%) translateY(0); }
-      50%      { transform: translateX(-50%) translateY(8px); }
+    .slide.is-active .feat-card,
+    .slide.is-active .goal-card,
+    .slide.is-active .plan-card {
+      animation: cardRise 0.6s cubic-bezier(0.22, 1, 0.36, 1) backwards;
     }
-
-    /* ── Section commons ── */
-    section { padding: 96px 40px; }
-    .section-inner { max-width: 1100px; margin: 0 auto; }
-    .section-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--teal);
-      margin-bottom: 12px;
+    .slide.is-active .feat-card:nth-child(2),
+    .slide.is-active .goal-card:nth-child(2),
+    .slide.is-active .plan-card:nth-child(2) { animation-delay: 0.08s; }
+    .slide.is-active .feat-card:nth-child(3),
+    .slide.is-active .plan-card:nth-child(3) { animation-delay: 0.16s; }
+    .slide.is-active .plan-card:nth-child(4) { animation-delay: 0.24s; }
+    @keyframes cardRise {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .section-title {
-      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
-      font-weight: 700;
-      line-height: 1.4;
-      margin-bottom: 20px;
-      color: var(--dark);
-    }
-    .section-desc {
-      font-size: 1rem;
-      color: var(--gray);
-      max-width: 680px;
-      line-height: 1.9;
+    @media (prefers-reduced-motion: reduce) {
+      .slide-inner { opacity: 1; transform: none; filter: none; transition: none; }
+      .slide.is-active .feat-card, .slide.is-active .goal-card, .slide.is-active .plan-card { animation: none; }
     }
 
-    /* ── About / Pain points ── */
-    .about { background: var(--white); }
-    .about .section-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
-    .pain-list { list-style: none; margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
+    /* ── Slide Dots ── */
+    .slide-dots {
+      position: fixed; right: 14px; top: 50%; transform: translateY(-50%);
+      z-index: 90; display: flex; flex-direction: column; gap: 10px;
+    }
+    .slide-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4);
+      padding: 0; transition: 0.2s;
+    }
+    .slide-dot.active {
+      background: var(--teal); border-color: var(--teal);
+      transform: scale(1.25); box-shadow: 0 0 10px rgba(14,165,233,0.7);
+    }
+    .next-hint {
+      position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+      font-family: var(--font-mono); font-size: 0.66rem; color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.06); border: 1px solid var(--border);
+      padding: 2px 12px; border-radius: 999px;
+    }
+    .next-hint:hover { color: #fff; border-color: var(--teal); }
+
+    /* ── Typography & Buttons ── */
+    .eyebrow {
+      display: inline-block; font-family: var(--font-mono); font-size: 0.72rem;
+      font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--teal); border: 1px solid rgba(14,165,233,0.4);
+      padding: 3px 12px; border-radius: 999px; margin-bottom: 12px;
+      width: fit-content;
+    }
+    .sec-title {
+      font-size: clamp(1.45rem, 3vw, 2.3rem);
+      font-weight: 700; line-height: 1.32; color: #fff; margin-bottom: 12px;
+    }
+    .sec-title em { font-style: normal; color: var(--teal); }
+    .sec-desc {
+      font-size: clamp(0.86rem, 1.45vw, 0.98rem);
+      color: var(--gray); line-height: 1.75; max-width: 680px;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--teal); color: #fff; padding: 11px 24px;
+      border-radius: 6px; font-weight: 600; font-size: 0.9rem; border: none;
+      box-shadow: 0 6px 20px rgba(14,165,233,0.3); transition: 0.2s;
+    }
+    .btn-primary:hover { background: var(--blue-l); transform: translateY(-1px); }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      border: 1px solid rgba(255,255,255,0.3); color: #fff;
+      padding: 11px 22px; border-radius: 6px; font-size: 0.88rem;
+      background: rgba(255,255,255,0.04); transition: 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--teal); }
+
+    /* ── Slide 1: Hero ── */
+    .s-hero {
+      background: radial-gradient(ellipse 80% 60% at 50% 35%, rgba(14,165,233,0.18), transparent 70%),
+                  linear-gradient(135deg, #070d18 0%, #0f1b2d 100%);
+      text-align: center;
+    }
+    .hero-box { max-width: 820px; margin: 0 auto; }
+    .hero-box h1 {
+      font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+      font-weight: 700; line-height: 1.32; margin-bottom: 18px;
+    }
+    .hero-box h1 em { font-style: normal; color: var(--teal); }
+    .hero-box p {
+      font-size: clamp(0.92rem, 1.6vw, 1.06rem);
+      color: #cbd5e1; max-width: 600px; margin: 0 auto 28px; line-height: 1.8;
+    }
+    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Slide 2: About ── */
+    .s-about { background: #0a1220; border-top: 1px solid var(--border); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 40px; align-items: center; }
+    .pain-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
     .pain-list li {
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-      padding: 16px 20px;
-      background: var(--light);
-      border-radius: 8px;
-      border-left: 3px solid var(--teal);
-      font-size: 0.9rem;
-      color: #444;
-      line-height: 1.7;
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 13px 16px; background: var(--surface);
+      border: 1px solid var(--border); border-left: 3px solid var(--teal);
+      border-radius: 8px; font-size: 0.88rem; color: #e2e8f0; line-height: 1.55;
     }
     .pain-list li::before {
-      content: '?';
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--teal);
-      background: rgba(14,165,233,0.12);
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      margin-top: 2px;
+      content: '?'; font-size: 0.72rem; font-weight: 700; color: var(--teal);
+      background: rgba(14,165,233,0.15); width: 22px; height: 22px;
+      border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; margin-top: 1px;
     }
 
-    /* ── Tech Features ── */
-    .features { background: var(--light); }
-    .features-header { text-align: center; margin-bottom: 64px; }
-    .features-header .section-desc { margin: 0 auto; }
-    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
-    .feature-card {
-      background: var(--white);
-      border-radius: 12px;
-      padding: 36px 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      transition: transform 0.2s, box-shadow 0.2s;
-      border-top: 3px solid transparent;
+    /* ── Slide 3: Features (画像中心・端的に) ── */
+    .s-features { background: var(--navy); border-top: 1px solid var(--border); }
+    .feat-head { text-align: center; margin-bottom: 20px; }
+    .feat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .feat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      display: flex; flex-direction: column;
+      transition: transform 0.2s, border-color 0.2s;
     }
-    .feature-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    .feat-card:hover { transform: translateY(-3px); border-color: rgba(14,165,233,0.45); }
+    .feat-img {
+      width: 100%; aspect-ratio: 16 / 9; object-fit: cover;
+      max-height: 190px; background: #0b1322;
     }
-    .feature-card:nth-child(1) { border-top-color: var(--teal); }
-    .feature-card:nth-child(2) { border-top-color: var(--blue); }
-    .feature-card:nth-child(3) { border-top-color: #8b5cf6; }
-    .feature-icon {
-      width: 48px; height: 48px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.4rem;
-      margin-bottom: 20px;
-    }
-    .feature-card:nth-child(1) .feature-icon { background: rgba(14,165,233,0.1); }
-    .feature-card:nth-child(2) .feature-icon { background: rgba(37,99,235,0.1); }
-    .feature-card:nth-child(3) .feature-icon { background: rgba(139,92,246,0.1); }
-    .feature-card h3 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      margin-bottom: 12px;
-      color: var(--dark);
-    }
-    .feature-card p { font-size: 0.875rem; color: var(--gray); line-height: 1.8; margin-bottom: 20px; }
-    .examples {
-      font-size: 0.8rem;
-      color: #555;
-      background: var(--light);
-      border-radius: 6px;
-      padding: 12px 14px;
-      line-height: 1.9;
-    }
-    .examples strong { color: var(--dark); font-size: 0.75rem; letter-spacing: 0.05em; }
+    .feat-body { padding: 16px 18px; display: flex; flex-direction: column; flex: 1; }
+    .feat-body h3 { font-size: 1.04rem; font-weight: 700; margin-bottom: 6px; color: #fff; }
+    .feat-body p { font-size: 0.84rem; color: #cbd5e1; line-height: 1.55; margin-bottom: 12px; flex: 1; }
+    .feat-link { font-size: 0.82rem; font-weight: 600; color: var(--teal); display: inline-flex; align-items: center; gap: 4px; }
+    .feat-link:hover { text-decoration: underline; }
 
-    /* ── Goal / Philosophy ── */
-    .goal { background: var(--navy); }
-    .goal .section-label { color: var(--teal); }
-    .goal .section-title { color: #fff; }
-    .goal .section-desc { color: rgba(255,255,255,0.65); }
-    .goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 52px; }
+    /* ── Slide 4: Goal (不安と負担を取り除く) ── */
+    .s-goal {
+      background: radial-gradient(ellipse 70% 60% at 20% 20%, rgba(14,165,233,0.12), transparent 70%), #0a1220;
+      border-top: 1px solid var(--border);
+    }
+    .goal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
     .goal-card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 12px;
-      padding: 32px 28px;
-      transition: background 0.2s, border-color 0.2s;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 28px 26px;
+      border-top: 3px solid var(--teal);
     }
-    .goal-card:hover {
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(14,165,233,0.35);
-    }
+    .goal-card:nth-child(2) { border-top-color: var(--blue-l); }
     .goal-tag {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 3px 10px;
-      border-radius: 20px;
-      margin-bottom: 16px;
+      display: inline-block; font-family: var(--font-mono); font-size: 0.72rem;
+      font-weight: 600; color: var(--teal); background: rgba(14,165,233,0.15);
+      padding: 3px 10px; border-radius: 999px; margin-bottom: 12px;
     }
-    .tag-learn { background: rgba(14,165,233,0.2); color: var(--teal); }
-    .tag-quick { background: rgba(37,99,235,0.2); color: #93c5fd; }
-    .goal-card h3 { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 12px; }
-    .goal-card p { font-size: 0.875rem; color: rgba(255,255,255,0.6); line-height: 1.85; }
-    .goal-card ul { list-style: none; margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
-    .goal-card ul li {
-      font-size: 0.85rem;
-      color: rgba(255,255,255,0.55);
-      padding-left: 16px;
-      position: relative;
+    .goal-card h3 { font-size: 1.18rem; color: #fff; margin-bottom: 10px; line-height: 1.4; }
+    .goal-card p { font-size: 0.88rem; color: #cbd5e1; line-height: 1.75; margin-bottom: 14px; }
+    .goal-points { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .goal-points li { font-size: 0.84rem; color: #94a3b8; padding-left: 18px; position: relative; }
+    .goal-points li::before { content: '✓'; position: absolute; left: 0; color: var(--ok); font-weight: 700; }
+
+    /* ── Slide 5: Plans (One time support + サブスク) ── */
+    .s-plans { background: var(--navy); border-top: 1px solid var(--border); }
+    .plans-head { text-align: center; margin-bottom: 18px; }
+    .plans-head .sec-desc { margin: 0 auto; font-size: 0.86rem; }
+    .plans-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .plan-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 16px; position: relative;
+      display: flex; flex-direction: column;
     }
-    .goal-card ul li::before {
-      content: '›';
-      position: absolute;
-      left: 0;
-      color: var(--teal);
-      font-weight: 700;
+    .plan-card.spot { border-color: rgba(245,158,11,0.55); background: linear-gradient(180deg, rgba(245,158,11,0.08), var(--surface)); }
+    .plan-card.featured { border: 2px solid var(--teal); }
+    .plan-badge {
+      position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+      background: var(--teal); color: #fff; font-size: 0.66rem; font-weight: 700;
+      padding: 2px 10px; border-radius: 999px; white-space: nowrap;
+    }
+    .plan-card.spot .plan-badge { background: var(--amber); color: #070d18; }
+    .plan-card h3 { font-size: 0.96rem; color: #fff; margin-bottom: 6px; }
+    .plan-price {
+      padding-bottom: 10px; margin-bottom: 10px;
+      border-bottom: 1px solid var(--border); font-size: 0.78rem; color: var(--gray);
+    }
+    .plan-price strong { display: block; font-size: 1.08rem; color: #fff; }
+    .price-strike { text-decoration: line-through; color: #64748b; font-size: 0.82rem; margin-right: 6px; }
+    .price-sale { color: #fbbf24; font-size: 1.18rem; font-weight: 700; }
+    .plan-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; flex: 1; }
+    .plan-card ul li { font-size: 0.78rem; color: #cbd5e1; padding-left: 16px; position: relative; line-height: 1.45; }
+    .plan-card ul li::before { content: '✓'; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
+    .btn-plan {
+      display: block; text-align: center; padding: 8px 12px; border-radius: 6px;
+      font-size: 0.8rem; font-weight: 600; border: 1px solid var(--teal); color: var(--teal);
+      transition: 0.2s;
+    }
+    .btn-plan:hover, .plan-card.featured .btn-plan { background: var(--teal); color: #fff; }
+    .plan-card.spot .btn-plan { border-color: var(--amber); color: #fbbf24; }
+    .plan-card.spot .btn-plan:hover { background: var(--amber); color: #070d18; }
+
+    /* ── Slide 6: Contact + Community + Footer ── */
+    .s-end {
+      background: radial-gradient(ellipse 70% 70% at 50% 25%, rgba(14,165,233,0.16), transparent 70%), #0a1220;
+      border-top: 1px solid var(--border);
+    }
+    .end-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 24px; align-items: stretch; margin-bottom: 18px; }
+    .cta-panel {
+      background: linear-gradient(135deg, #0f1b2d, #132238);
+      border: 1px solid rgba(14,165,233,0.4); border-radius: 14px;
+      padding: 28px; display: flex; flex-direction: column; justify-content: center;
+    }
+    .cta-panel h2 { font-size: 1.45rem; color: #fff; margin-bottom: 10px; }
+    .cta-panel p { font-size: 0.88rem; color: #cbd5e1; margin-bottom: 20px; line-height: 1.7; }
+    .partner-panel {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px; display: flex; flex-direction: column; justify-content: center;
+    }
+    .partner-panel h3 { font-size: 1.05rem; color: #fff; margin-bottom: 8px; }
+    .partner-panel p { font-size: 0.82rem; color: var(--gray); margin-bottom: 14px; line-height: 1.65; }
+    .mini-footer {
+      border-top: 1px solid var(--border); padding-top: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 12px; font-size: 0.76rem; color: #64748b;
+    }
+    .mini-footer a:hover { color: var(--teal); }
+
+    /* ── Responsive: スマホ縦向き (コンテンツ溢れ防止) ── */
+    @media (max-width: 920px) {
+      .about-grid, .feat-grid, .goal-grid, .end-grid { grid-template-columns: 1fr; gap: 14px; }
+      .plans-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .nav-pill { display: none; }
+    }
+    @media (max-width: 720px) and (orientation: portrait) {
+      .slide { height: auto; min-height: 100dvh; padding: calc(var(--header-h) + 20px) 32px 36px 16px; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .feat-img { max-height: 140px; }
     }
 
-    /* ── Community ── */
-    .community { background: var(--white); }
-    .community .section-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
-    .community-reasons { list-style: none; margin-top: 28px; display: flex; flex-direction: column; gap: 12px; }
-    .community-reasons li {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 0.9rem;
-      color: #444;
-      font-weight: 500;
-    }
-    .community-reasons li::before {
-      content: '✓';
-      width: 24px; height: 24px;
-      background: rgba(14,165,233,0.12);
-      color: var(--teal);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.75rem;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-    .community-cta-box {
-      background: linear-gradient(135deg, var(--navy) 0%, #0d2847 100%);
-      border-radius: 16px;
-      padding: 48px 40px;
-      text-align: center;
-    }
-    .community-cta-box h3 { font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 14px; }
-    .community-cta-box p { font-size: 0.9rem; color: rgba(255,255,255,0.65); margin-bottom: 28px; line-height: 1.8; }
-
-    /* ── Subscription ── */
-    .subscription { background: var(--light); }
-    .subscription .section-inner { text-align: center; }
-    .subscription .section-desc { margin: 0 auto 56px; }
-    .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; text-align: left; }
-    .sub-card {
-      background: var(--white);
-      border-radius: 12px;
-      padding: 32px 28px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      position: relative;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .sub-card:hover { transform: translateY(-4px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
-    .sub-card.featured {
-      border: 2px solid var(--teal);
-      transform: scale(1.02);
-    }
-    .sub-card.featured:hover { transform: scale(1.02) translateY(-4px); }
-    .featured-badge {
-      position: absolute;
-      top: -12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--teal);
-      color: #fff;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      padding: 3px 14px;
-      border-radius: 20px;
-    }
-    .sub-card h3 { font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 8px; }
-    .sub-card .price {
-      font-size: 0.85rem;
-      color: var(--gray);
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid var(--border);
-    }
-    .sub-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
-    .sub-card ul li {
-      font-size: 0.85rem;
-      color: #555;
-      padding-left: 20px;
-      position: relative;
-      line-height: 1.6;
-    }
-    .sub-card ul li::before {
-      content: '✓';
-      position: absolute;
-      left: 0;
-      color: var(--teal);
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
-    .btn-outline {
-      display: block;
-      text-align: center;
-      border: 1.5px solid var(--teal);
-      color: var(--teal);
-      padding: 10px 20px;
-      border-radius: 5px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      transition: background 0.2s, color 0.2s;
-    }
-    .btn-outline:hover { background: var(--teal); color: #fff; }
-    .btn-filled {
-      display: block;
-      text-align: center;
-      background: var(--teal);
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 5px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    .btn-filled:hover { background: var(--blue-l); }
-
-    /* ── Footer ── */
-    footer {
-      background: var(--navy);
-      color: rgba(255,255,255,0.5);
-      padding: 48px 40px 32px;
-    }
-    .footer-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 40px;
-      flex-wrap: wrap;
-      padding-bottom: 32px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      margin-bottom: 24px;
-    }
-    .footer-brand .logo { font-size: 1.3rem; margin-bottom: 10px; }
-    .footer-brand p { font-size: 0.8rem; line-height: 1.7; max-width: 260px; }
-    .footer-links h4 { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.8); margin-bottom: 14px; letter-spacing: 0.08em; text-transform: uppercase; }
-    .footer-links ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-    .footer-links ul li a { font-size: 0.8rem; transition: color 0.2s; }
-    .footer-links ul li a:hover { color: var(--teal); }
-    .footer-copy { text-align: center; font-size: 0.75rem; }
-
-    /* ── Responsive ── */
-    @media (max-width: 900px) {
-      section { padding: 72px 24px; }
-      header { padding: 0 24px; }
-      .about .section-inner,
-      .community .section-inner { grid-template-columns: 1fr; gap: 48px; }
-      .features-grid { grid-template-columns: 1fr; }
-      .goal-grid { grid-template-columns: 1fr; }
-      .sub-grid { grid-template-columns: 1fr; }
-      .sub-card.featured { transform: none; }
-      .footer-inner { flex-direction: column; }
-    }
-    @media (max-width: 768px) {
-      header { padding: 0 16px; }
-      .logo { font-size: 1.25rem; }
-      nav { gap: 10px; }
-      .btn-cta {
-        padding: 7px 12px;
-        font-size: 0.78rem;
-        white-space: nowrap;
-      }
-    }
-    @media (max-width: 360px) {
-      .logo { font-size: 1.1rem; }
-      .btn-cta { padding: 6px 10px; font-size: 0.72rem; }
-      .hamburger { width: 36px; height: 36px; }
+    /* ── Responsive: スマホ横型 (高さ360〜460px) ── */
+    @media (max-height: 460px) and (orientation: landscape) {
+      :root { --header-h: 46px; }
+      .slide { padding: calc(var(--header-h) + 6px) 36px 10px 18px; }
+      .sec-title { font-size: 1.32rem; margin-bottom: 6px; }
+      .hero-box h1 { font-size: 1.65rem; margin-bottom: 8px; }
+      .hero-box p { font-size: 0.82rem; margin-bottom: 14px; }
+      .pain-list { gap: 6px; }
+      .pain-list li { padding: 7px 10px; font-size: 0.75rem; }
+      .feat-head { margin-bottom: 10px; }
+      .feat-img { max-height: 92px; }
+      .feat-body { padding: 10px 12px; }
+      .feat-body h3 { font-size: 0.88rem; margin-bottom: 3px; }
+      .feat-body p { font-size: 0.74rem; margin-bottom: 6px; }
+      .goal-grid { gap: 12px; margin-top: 10px; }
+      .goal-card { padding: 12px 14px; }
+      .goal-card h3 { font-size: 0.96rem; margin-bottom: 4px; }
+      .goal-card p { font-size: 0.76rem; margin-bottom: 6px; }
+      .plans-head { margin-bottom: 10px; }
+      .plan-card { padding: 10px 12px; }
+      .plan-card ul { gap: 3px; margin-bottom: 8px; }
+      .plan-card ul li { font-size: 0.7rem; }
+      .cta-panel, .partner-panel { padding: 14px 16px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ════ HEADER ════ -->
-<header>
-  <div class="logo">Catch<span>AIT</span></div>
-  <nav>
-    <div class="nav-links" style="display:flex;gap:24px;">
-      <a href="#about">サービスについて</a>
-      <a href="#features">技術</a>
-      <a href="#goal">ゴール</a>
-      <a href="#community">コミュニティ</a>
-    </div>
-    <a href="https://catchait8.github.io/web/hearing_form.html" target="_blank" class="btn-cta">いますぐ無料相談</a>
-    <button class="hamburger" id="hamburger" type="button" aria-label="メニューを開く" aria-controls="mobileDrawer" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-  </nav>
-</header>
+  <!-- ════ HEADER ════ -->
+  <header>
+    <a href="index.html" class="logo">Catch<span>AIT</span></a>
+    <nav>
+      <a class="nav-pill" href="usecase_webcam.html">Webカメラ事例</a>
+      <a class="nav-pill" href="usecase_ai.html">AI業務自動化事例</a>
+      <a href="hearing_form.html" class="btn-cta">いますぐ無料相談</a>
+      <button class="hamburger" id="hamburger" type="button" aria-label="メニュー" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </header>
 
-<!-- ════ MOBILE DRAWER ════ -->
-<div class="mobile-drawer" id="mobileDrawer" role="navigation" aria-label="モバイルメニュー">
-  <a href="#about">サービスについて</a>
-  <a href="#features">技術</a>
-  <a href="usecase_webcam.html">ユースケース</a>
-  <a href="#goal">ゴール</a>
-  <a href="#community">コミュニティ</a>
-  <a href="https://catchait8.github.io/web/aboutUS.html">About Us</a>
-</div>
-
-<script>
-  (function () {
-    const btn    = document.getElementById('hamburger');
-    const drawer = document.getElementById('mobileDrawer');
-    if (!btn || !drawer) return;
-
-    const close = () => {
-      btn.classList.remove('open');
-      drawer.classList.remove('open');
-      btn.setAttribute('aria-expanded', 'false');
-    };
-    const toggle = () => {
-      const isOpen = btn.classList.toggle('open');
-      drawer.classList.toggle('open', isOpen);
-      btn.setAttribute('aria-expanded', String(isOpen));
-    };
-
-    btn.addEventListener('click', toggle);
-
-    // Close when a drawer link is clicked (anchor navigation)
-    drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
-
-    // Close when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!drawer.classList.contains('open')) return;
-      if (drawer.contains(e.target) || btn.contains(e.target)) return;
-      close();
-    });
-
-    // Close on Escape
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
-
-    // Close if resized to desktop width
-    window.addEventListener('resize', () => { if (window.innerWidth > 768) close(); });
-  })();
-</script>
-
-
-<!-- ════ HERO ════ -->
-<section class="hero">
-  <div class="hero-content">
-    <span class="hero-eyebrow">Catch8 / キャッチエイト</span>
-    <h1>
-      あなたの業務や生活を<br />
-      <em>快適にする</em>方法があります
-    </h1>
-    <p>
-      個人・個人事業主・小規模企業向けに、IT環境の運用を最適化し、<br />
-      便利なアイデア・ノウハウ・ツールを提供するサービスです。
-    </p>
-    <div class="hero-actions">
-      <a href="https://catchait8.github.io/web/hearing_form.html" target="_blank" class="btn-primary">いますぐ無料相談</a>
-      <a href="#features" class="btn-secondary">サービスを見る</a>
-    </div>
+  <div class="mobile-drawer" id="mobileDrawer">
+    <a href="index.html" class="active">ホーム</a>
+    <a href="usecase_webcam.html">ユースケース（Webカメラ検知）</a>
+    <a href="usecase_ai.html">ユースケース（AI・業務自動化）</a>
+    <a href="Apps/objDetectionPoc/index.html" target="_blank">人物検知ブラウザデモ (PoC)</a>
+    <a href="aboutUS.html">About Us</a>
+    <a href="hearing_form.html">無料相談・ヒアリングシート</a>
   </div>
-  <div class="scroll-hint">SCROLL</div>
-</section>
 
-
-<!-- ════ ABOUT ════ -->
-<section class="about" id="about">
-  <div class="section-inner">
-    <div>
-      <div class="section-label">About Catchait</div>
-      <h2 class="section-title">
-        あなたのまわりのIT環境を整え、<br />
-        快適な生活や業務の<br />手助けになりたい
-      </h2>
-      <p class="section-desc">
-        Catch8(キャッチエイト)は主に個人、個人事業主、あるいは比較的小規模でIT環境やツールなどを
-        自製で運用している企業向けに、その運用を最適化する、あるいは利便性の向上をもたらすための
-        アイデア、ノウハウ、ツールを提供するサービスです。<br /><br />
-        時代に沿った技術を活用した運用の提案をし、快適な生活や業務の手助けになりたいと考えています。
-      </p>
-    </div>
-    <div>
-      <p style="font-size:0.85rem;font-weight:600;color:#888;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:16px;">こんな悩みはありませんか？</p>
-      <ul class="pain-list">
-        <li>PCソフト（Excelなど）でデータ処理や書類作成を自己流でやっているが、もう少し効率的にやりたい</li>
-        <li>お金などの機密データを取り扱う処理の方法について、データを見せづらいため知り合いに相談できない</li>
-        <li>巷ではAIが常に騒がれているが自分の仕事に使えるの？乗り遅れたくないとは思っている</li>
-        <li>最新の技術について（PC・スマホ・タブレット）事例をもとに一から勉強したいが方法がわからない</li>
-      </ul>
-    </div>
+  <!-- Slide Dots -->
+  <div class="slide-dots" aria-label="セクション移動">
+    <button class="slide-dot active" data-slide="0" aria-label="ホーム"></button>
+    <button class="slide-dot" data-slide="1" aria-label="サービスについて"></button>
+    <button class="slide-dot" data-slide="2" aria-label="提供技術"></button>
+    <button class="slide-dot" data-slide="3" aria-label="ゴール"></button>
+    <button class="slide-dot" data-slide="4" aria-label="サポートプラン"></button>
+    <button class="slide-dot" data-slide="5" aria-label="無料相談"></button>
   </div>
-</section>
 
+  <main class="deck" id="deck">
 
-<!-- ════ FEATURES ════ -->
-<section class="features" id="features">
-  <div class="section-inner">
-    <div class="features-header">
-      <div class="section-label">最新技術で解決</div>
-      <h2 class="section-title">最新の技術はあなたの生活や<br />業務を劇的に進化させます</h2>
-      <p class="section-desc">
-        フリーライブラリ・汎用AI・PC自動化の3本柱で、あなたのニーズに合わせた最適なソリューションを提供します。
-      </p>
-    </div>
-    <div class="features-grid">
-
-      <!-- Card 1 -->
-      <div class="feature-card">
-        <div class="feature-icon">🔧</div>
-        <h3>フリーライブラリの高機能化</h3>
-        <p>
-          汎用的プログラムに実装された無料のライブラリや機能を用いて、
-          あなたの業務や日常に必要なツールをカスタマイズします。
-        </p>
-        <div class="examples">
-          <strong>例：</strong><br />
-          ・ウェブカメラの画像・音声の物体検出、文字読み取りの自動化<br />
-          ・ドキュメントや会話のリアルタイム議事録、翻訳機能の自動化
-        </div>
-        <a href="usecase_webcam.html" style="display:inline-block;margin-top:12px;font-size:0.875rem;color:var(--blue);font-weight:600;">Webカメラ検知の事例を見る →</a>
-      </div>
-
-      <!-- Card 2 -->
-      <div class="feature-card">
-        <div class="feature-icon">🤖</div>
-        <h3>汎用的AIの可用化</h3>
-        <p>
-          個人でAIを使用できるサービスを活用して業務・生活にカスタマイズしたAIを作り、
-          既存のコミュニケーションツールと組み合わせて手軽に使えるAIを構築します。
-        </p>
-        <div class="examples">
-          <strong>例：</strong><br />
-          ・OpenAIとLINEを統合した業務日報システム<br />
-          ・ディープラーニングモデルを用いた判定プログラム
+    <!-- ════ SLIDE 1: HERO ════ -->
+    <section class="slide s-hero is-active" id="top" data-idx="0">
+      <div class="slide-inner">
+        <div class="hero-box">
+          <span class="eyebrow">Catch8 / キャッチエイト</span>
+          <h1>あなたの業務や生活を<br /><em>快適にする</em>方法があります</h1>
+          <p>
+            個人・個人事業主・小規模企業向けに、AI・IT環境の最適化と自動化ツール・伴走サポートを提供します。
+          </p>
+          <div class="hero-actions">
+            <a href="hearing_form.html" class="btn-primary">いますぐ無料相談</a>
+            <button type="button" class="btn-ghost" onclick="goSlide(2)">技術と事例を見る ↓</button>
+          </div>
         </div>
       </div>
+      <button class="next-hint" type="button" onclick="goSlide(1)">SCROLL / NEXT ▾</button>
+    </section>
 
-      <!-- Card 3 -->
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>PC処理の自動化・スマホ連携</h3>
-        <p>
-          ExcelなどをはじめとしたソフトやWebサービスなどPC上の処理を効率的に自動化し、
-          日常の生活を快適にすることにつなげます。
-        </p>
-        <div class="examples">
-          <strong>例：</strong><br />
-          ・Web情報の自動入出力<br />
-          ・VBAによる自動化処理（Excel / Word / PowerPoint / Outlook 等）
+    <!-- ════ SLIDE 2: ABOUT ════ -->
+    <section class="slide s-about" id="about" data-idx="1">
+      <div class="slide-inner">
+        <div class="about-grid">
+          <div>
+            <span class="eyebrow">About CatchAIT</span>
+            <h2 class="sec-title">あなたのまわりのIT環境を整え、<br />快適な業務と生活を手助けします</h2>
+            <p class="sec-desc">
+              個人や小規模環境で自製運用しているITツールを、最新のAI・自動化技術で最適化。日々の手作業や不安を解消します。
+            </p>
+          </div>
+          <div>
+            <ul class="pain-list">
+              <li>ExcelやPCでのデータ処理を自己流でやっており、もっと効率化したい</li>
+              <li>お金などの機密データを扱うため、外部や知り合いに相談しづらい</li>
+              <li>AIが話題だが、自分の仕事にどう活かせるか分からない・乗り遅れたくない</li>
+              <li>PC・スマホの最新技術を、実例ベースで一から身につけたい</li>
+            </ul>
+          </div>
         </div>
       </div>
+      <button class="next-hint" type="button" onclick="goSlide(2)">NEXT · 提供技術 ▾</button>
+    </section>
 
-    </div>
-    <p style="text-align:center;margin-top:36px;font-size:0.875rem;color:var(--teal);font-weight:600;">
-      ✦ 過去に提供されたソリューションであれば驚くほど低工数・工期でのご提供が可能です
-    </p>
-    <p style="text-align:center;margin-top:8px;">
-      <a href="#goal" style="font-size:0.875rem;color:var(--blue);text-decoration:underline;">ソリューション例のご紹介はこちら →</a>
-    </p>
-    <p style="text-align:center;margin-top:8px;">
-      <a href="usecase_webcam.html" style="font-size:0.875rem;color:var(--blue);text-decoration:underline;">Webカメラ検知のカスタマイズ事例を見る →</a>
-    </p>
-  </div>
-</section>
+    <!-- ════ SLIDE 3: FEATURES (画像メイン・端的な表現) ── -->
+    <section class="slide s-features" id="features" data-idx="2">
+      <div class="slide-inner">
+        <div class="feat-head">
+          <span class="eyebrow">Technology</span>
+          <h2 class="sec-title">最新の技術はあなたの生活や業務を劇的に進化させます</h2>
+        </div>
+        <div class="feat-grid">
+          <div class="feat-card">
+            <img class="feat-img" src="assets/images/feat_camera.jpg" alt="カメラ × AI" />
+            <div class="feat-body">
+              <h3>カメラ × AIで</h3>
+              <p>人間と同様の見守りと連絡を。ペットや車両、勤怠や防犯を言葉で自在に通知します。</p>
+              <a class="feat-link" href="usecase_webcam.html">Webカメラ事例を見る →</a>
+            </div>
+          </div>
 
+          <div class="feat-card">
+            <img class="feat-img" src="assets/images/feat_ai.jpg" alt="スマホで日々の業務" />
+            <div class="feat-body">
+              <h3>スマホで日々の業務を</h3>
+              <p>あなたの必要な情報を、必要な形で。いつものスマホから日々の業務を完結できます。</p>
+              <a class="feat-link" href="usecase_ai.html">スマホ・AI業務事例を見る →</a>
+            </div>
+          </div>
 
-<!-- ════ GOAL ════ -->
-<section class="goal" id="goal">
-  <div class="section-inner">
-    <div class="section-label">Our Goal</div>
-    <h2 class="section-title">使いこなす「あなた」が<br />私たちのゴールです</h2>
-    <p class="section-desc">
-      Catch8はウェブのツールを単なるパッケージ商品として売り出すわけでなく、
-      その技術を使いこなせる「あなた」を育て、スキルを通じて仕事・学習・成長など課題の解決の手助けをしたいと考えています。
-      ニーズに合わせた対応をします。
-    </p>
-    <div class="goal-grid">
-
-      <div class="goal-card">
-        <span class="goal-tag tag-learn">自己成長プラン</span>
-        <h3>ミニマムトレーニングとQAサポート</h3>
-        <p>自身のスキルを成長させ、ご自身でツール構築したいかたへ</p>
-        <ul>
-          <li>継続的なトレーニングプログラム</li>
-          <li>QAサポートで疑問を即解決</li>
-          <li>ご自身で開発できるようになるまで伴走</li>
-        </ul>
+          <div class="feat-card">
+            <img class="feat-img" src="assets/images/feat_hobby.jpg" alt="趣味がまた動く" />
+            <div class="feat-body">
+              <h3>あなたの趣味が、また動く</h3>
+              <p>作曲、動画作成、ブログなど。準備が億劫なものが劇的なスピードでセットアップできます。</p>
+              <a class="feat-link" href="hearing_form.html">環境構築を相談する →</a>
+            </div>
+          </div>
+        </div>
       </div>
+      <button class="next-hint" type="button" onclick="goSlide(3)">NEXT · 私たちのゴール ▾</button>
+    </section>
 
-      <div class="goal-card">
-        <span class="goal-tag tag-quick">スピード導入プラン</span>
-        <h3>開発の発注と運用インストラクション</h3>
-        <p>ツールを早く導入してご利用になりたいかたへ</p>
-        <ul>
-          <li>要望が発生した際にスポット的に発注</li>
-          <li>開発部分は弊社、運用部分はご自身で担当</li>
-          <li>ご自身で開発したい部分との組み合わせも可能</li>
-        </ul>
+    <!-- ════ SLIDE 4: GOAL (不安と負担を取り除く) ════ -->
+    <section class="slide s-goal" id="goal" data-idx="3">
+      <div class="slide-inner">
+        <span class="eyebrow">Our Goal</span>
+        <h2 class="sec-title">使いこなす「あなた」が、私たちのゴールです</h2>
+        <p class="sec-desc">ツールを売って終わりではありません。最新技術への心理的な壁と、導入の手間をまるごと取り除きます。</p>
+        <div class="goal-grid">
+          <div class="goal-card">
+            <span class="goal-tag">01 · ANXIETY FREE</span>
+            <h3>「技術に乗り遅れているかも」という<br />不安を取り除く</h3>
+            <p>日々進化するAIやITツールを、専門用語なしであなたの業務に合う形へ噛み砕いてご提案。「何から始めればいいか分からない」状態を解消します。</p>
+            <ul class="goal-points">
+              <li>あなたの業務に本当に必要な技術だけを厳選</li>
+              <li>分かりやすい言葉での解説と実践的なデモ提示</li>
+            </ul>
+          </div>
+          <div class="goal-card">
+            <span class="goal-tag">02 · ZERO BURDEN</span>
+            <h3>新しいものを導入する<br />実務的・心的負担を取り払う</h3>
+            <p>環境構築・設定・テストから運用レクチャーまで丁寧に伴走。今お使いのExcelやLINEを活かすため、現場の混乱や学習ストレスを最小限に抑えます。</p>
+            <ul class="goal-points">
+              <li>既存ツールを活かすため新しい操作を覚えなくてOK</li>
+              <li>導入後の疑問もチャットや相談でいつでも即解決</li>
+            </ul>
+          </div>
+        </div>
       </div>
+      <button class="next-hint" type="button" onclick="goSlide(4)">NEXT · サポートプラン ▾</button>
+    </section>
 
-    </div>
-  </div>
-</section>
+    <!-- ════ SLIDE 5: PLANS (One time support + サブスク) ════ -->
+    <section class="slide s-plans" id="subscription" data-idx="4">
+      <div class="slide-inner">
+        <div class="plans-head">
+          <span class="eyebrow">Plans</span>
+          <h2 class="sec-title">あなたのニーズに柔軟に対応するサポートプラン</h2>
+          <p class="sec-desc">まずは単発で試したい方から継続伴走まで。無料相談後に環境・規模に合わせた最適なお見積りをご提示します。</p>
+        </div>
 
+        <div class="plans-grid">
+          <div class="plan-card spot">
+            <div class="plan-badge">単発OK・特別価格</div>
+            <h3>One time support</h3>
+            <div class="plan-price">
+              <span class="price-strike">¥8,000</span><span class="price-sale">¥6,000</span>
+              <span>60分スポットサポート</span>
+            </div>
+            <ul>
+              <li>1回60分の集中オンライン支援</li>
+              <li>既存ツール・AI導入のお悩み解決</li>
+              <li>まずは試したい・単発で聞きたい方向け</li>
+            </ul>
+            <a href="hearing_form.html" class="btn-plan">スポット相談を申し込む</a>
+          </div>
 
-<!-- ════ COMMUNITY ════ -->
-<section class="community" id="community">
-  <div class="section-inner">
-    <div>
-      <div class="section-label">Community</div>
-      <h2 class="section-title">
-        利便性をもたらすITツールを<br />
-        創りたい方々との交流を<br />求めています
-      </h2>
-      <p class="section-desc">
-        人々のニーズに合ったツールを開発し、世の中をもっと便利に・快適にするものを
-        実現させたいという方々のコンタクトをお待ちしています。
-      </p>
-      <ul class="community-reasons">
-        <li>メンバーと交流し知識や刺激を得たい</li>
-        <li>空いた時間を活用したい</li>
-        <li>実社会のニーズに合わせたツール開発をしたい</li>
-        <li>産業に役立つツールを作りたいという情熱をお持ちの方も募集しています</li>
-      </ul>
-    </div>
-    <div class="community-cta-box" id="contact">
-      <h3>まずは無料でご相談ください</h3>
-      <p>
-        あなたの業務や生活の課題をヒアリングし、<br />
-        最適なIT活用のご提案をします。<br />
-        初回相談は完全無料です。
-      </p>
-      <a href="https://catchait8.github.io/web/hearing_form.html" target="_blank" class="btn-primary" style="display:inline-block;">いますぐ無料相談</a>
-    </div>
-  </div>
-</section>
+          <div class="plan-card">
+            <h3>ライトプラン</h3>
+            <div class="plan-price">
+              <strong>目安：月額 ¥15,000〜</strong>
+              <span>※規模に応じ無料相談後お見積り</span>
+            </div>
+            <ul>
+              <li>QAサポート（月8回まで）</li>
+              <li>ミニマムトレーニング</li>
+              <li>メール・チャットサポート</li>
+            </ul>
+            <a href="hearing_form.html" class="btn-plan">無料相談で見積もる</a>
+          </div>
 
+          <div class="plan-card featured">
+            <div class="plan-badge">おすすめ</div>
+            <h3>スタンダードプラン</h3>
+            <div class="plan-price">
+              <strong>目安：月額 ¥35,000〜</strong>
+              <span>※規模に応じ無料相談後お見積り</span>
+            </div>
+            <ul>
+              <li>QAサポート（無制限）</li>
+              <li>継続トレーニングプログラム</li>
+              <li>スポット開発の優先対応</li>
+              <li>月次レビューミーティング</li>
+            </ul>
+            <a href="hearing_form.html" class="btn-plan">無料相談で見積もる</a>
+          </div>
 
-<!-- ════ SUBSCRIPTION ════ -->
-<section class="subscription" id="subscription">
-  <div class="section-inner">
-    <div class="section-label">Plans</div>
-    <h2 class="section-title">サブスクプランによってあなたの<br />時々のニーズに柔軟に対応します</h2>
-    <p class="section-desc">
-      プランの継続・変更・停止もWebから簡単に行うことができ、電話連絡や説明などの手間を要しません。
-    </p>
-    <div class="sub-grid">
-
-      <div class="sub-card">
-        <h3>ライトプラン</h3>
-        <p class="price">月額 お問い合わせ</p>
-        <ul>
-          <li>QAサポート（月8回まで）</li>
-          <li>ミニマムトレーニング</li>
-          <li>メール・チャットサポート</li>
-        </ul>
-        <a href="#contact" class="btn-outline">プランを見る</a>
+          <div class="plan-card">
+            <h3>プレミアムプラン</h3>
+            <div class="plan-price">
+              <strong>目安：月額 ¥80,000〜</strong>
+              <span>※開発規模に応じ個別お見積り</span>
+            </div>
+            <ul>
+              <li>スタンダードプランの全内容</li>
+              <li>開発丸ごと発注対応</li>
+              <li>運用インストラクション込み</li>
+              <li>専任担当者アサイン</li>
+            </ul>
+            <a href="hearing_form.html" class="btn-plan">無料相談で見積もる</a>
+          </div>
+        </div>
       </div>
+      <button class="next-hint" type="button" onclick="goSlide(5)">NEXT · 無料相談 ▾</button>
+    </section>
 
-      <div class="sub-card featured">
-        <div class="featured-badge">おすすめ</div>
-        <h3>スタンダードプラン</h3>
-        <p class="price">月額 お問い合わせ</p>
-        <ul>
-          <li>QAサポート（無制限）</li>
-          <li>継続トレーニングプログラム</li>
-          <li>スポット開発の優先対応</li>
-          <li>月次レビューミーティング</li>
-        </ul>
-        <a href="#contact" class="btn-filled">プランを見る</a>
+    <!-- ════ SLIDE 6: CONTACT + COMMUNITY + FOOTER ════ -->
+    <section class="slide s-end" id="contact" data-idx="5">
+      <div class="slide-inner">
+        <div class="end-grid">
+          <div class="cta-panel">
+            <span class="eyebrow" style="margin-bottom:8px;">Free Consultation</span>
+            <h2>まずは無料でご相談ください</h2>
+            <p>
+              あなたの業務や生活の課題をヒアリングし、最適なAI・IT活用をご提案します。<br />
+              初回相談（30分・オンライン）は完全無料です。申込・契約の義務はありません。
+            </p>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;">
+              <a href="hearing_form.html" class="btn-primary">いますぐ無料相談を申し込む</a>
+              <a href="usecase_webcam.html" class="btn-ghost">事例を見る</a>
+            </div>
+          </div>
+
+          <div class="partner-panel" id="community">
+            <span class="eyebrow" style="margin-bottom:8px;">Community &amp; Partners</span>
+            <h3>ITツールを創りたい方との交流も歓迎</h3>
+            <p>
+              空いた時間を活かして実社会のニーズに合ったツール開発をしたい方、知識や刺激を交換したいエンジニア・クリエイターの方もお気軽にご連絡ください。
+            </p>
+            <a href="hearing_form.html" class="btn-ghost" style="width:fit-content;">コミュニティについて問い合わせる</a>
+          </div>
+        </div>
+
+        <footer class="mini-footer">
+          <span>&copy; 2026 CatchAIT / Catch8. All rights reserved.</span>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;">
+            <a href="usecase_webcam.html">Webカメラ事例</a>
+            <a href="usecase_ai.html">AI業務自動化事例</a>
+            <a href="aboutUS.html">About Us</a>
+            <a href="tokutei.html">特定商取引法に基づく表示</a>
+          </div>
+        </footer>
       </div>
+    </section>
 
-      <div class="sub-card">
-        <h3>プレミアムプラン</h3>
-        <p class="price">月額 お問い合わせ</p>
-        <ul>
-          <li>スタンダードプランの全内容</li>
-          <li>開発丸ごと発注対応</li>
-          <li>運用インストラクション込み</li>
-          <li>専任担当者アサイン</li>
-        </ul>
-        <a href="#contact" class="btn-outline">プランを見る</a>
-      </div>
+  </main>
 
-    </div>
-    <p style="text-align:center;margin-top:40px;">
-      <a href="#contact" class="btn-primary" style="display:inline-block;">いますぐプランを見る</a>
-    </p>
-  </div>
-</section>
+  <script>
+    /* ── Hamburger Drawer ── */
+    (function () {
+      const btn = document.getElementById('hamburger');
+      const drawer = document.getElementById('mobileDrawer');
+      const close = () => { btn.classList.remove('open'); drawer.classList.remove('open'); btn.setAttribute('aria-expanded','false'); };
+      btn.addEventListener('click', () => {
+        const open = btn.classList.toggle('open');
+        drawer.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', String(open));
+      });
+      drawer.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+      document.addEventListener('click', e => { if (drawer.classList.contains('open') && !drawer.contains(e.target) && !btn.contains(e.target)) close(); });
+    })();
 
+    /* ── Slide Navigation ── */
+    const deck = document.getElementById('deck');
+    const dots = document.querySelectorAll('.slide-dot');
+    const slides = document.querySelectorAll('.slide');
 
-<!-- ════ FOOTER ════ -->
-<footer>
-  <div class="footer-inner">
-    <div class="footer-brand">
-      <div class="logo">Catch<span>AIT</span></div>
-      <p>
-        個人・個人事業主・小規模企業向けに、IT環境の運用を最適化し、
-        便利なアイデア・ノウハウ・ツールを提供するサービスです。
-      </p>
-    </div>
-    <div class="footer-links">
-      <h4>サービス</h4>
-      <ul>
-        <li><a href="#about">サービスについて</a></li>
-        <li><a href="#features">提供技術</a></li>
-        <li><a href="usecase_webcam.html">ユースケース</a></li>
-        <li><a href="#goal">ゴールとプラン</a></li>
-        <li><a href="#subscription">サブスクプラン</a></li>
-      </ul>
-    </div>
-    <div class="footer-links">
-      <h4>お問い合わせ</h4>
-      <ul>
-        <li><a href="https://catchait8.github.io/web/hearing_form.html" target="_blank">無料相談申し込み</a></li>
-        <li><a href="#community">コミュニティ参加</a></li>
-        <li><a href="https://catchait8.github.io/web/hearing_form.html" target="_blank">お問い合わせフォーム</a></li>
-      </ul>
-    </div>
-  </div>
-  <div class="footer-copy">
-    &copy; 2024 CatchAIT / Catch8. All rights reserved.
-    ｜ <a href="tokutei.html" style="color:rgba(255,255,255,0.5);text-decoration:underline;transition:color 0.2s;" onmouseover="this.style.color='#0ea5e9'" onmouseout="this.style.color='rgba(255,255,255,0.5)'">特定商取引法に基づく表示</a>
-  </div>
-</footer>
+    function goSlide(idx) {
+      slides[idx]?.scrollIntoView({ behavior: 'smooth' });
+    }
+    dots.forEach(d => d.addEventListener('click', () => goSlide(Number(d.dataset.slide))));
 
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) {
+          en.target.classList.add('is-active');
+          const i = Number(en.target.dataset.idx);
+          dots.forEach((d, idx) => d.classList.toggle('active', idx === i));
+        }
+      });
+    }, { root: deck, threshold: 0.45 });
+    slides.forEach(s => obs.observe(s));
+  </script>
 </body>
 </html>
